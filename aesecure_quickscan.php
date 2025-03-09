@@ -111,7 +111,7 @@
  *      So, don't use __DIR__ but c:/sites/hacked/
  */
 
-define('REPO', 'https://github.com/afuj/aesecure_quickscan');
+define('REPO', 'https://github.com/afuj/quickscan');
 
 define('DIR', str_replace('/', DIRECTORY_SEPARATOR, dirname((string) $_SERVER['SCRIPT_FILENAME'])));
 define('FILE', str_replace('/', DIRECTORY_SEPARATOR, basename((string) $_SERVER['SCRIPT_FILENAME'])));
@@ -133,7 +133,7 @@ define('MEMORY_LIMIT', '256M');      // DEBUG MODE ONLY - Maximum memory limit t
 define('CURL_TIMEOUT', 2);           // Max number of seconds before the timeout when requesting a JSON file from avonture.be
 
 // Download URL for the file with CMS hashes
-define('DOWNLOAD_URL', 'https://raw.githubusercontent.com/afuj/aesecure_quickscan/master/');
+define('DOWNLOAD_URL', 'https://raw.githubusercontent.com/afuj/quickscan/master/');
 define('MD5', '');
 define('DIRNOTFOUND', 'Directory not found');
 
@@ -475,7 +475,7 @@ class aeSecureLanguage
     public const LANG_FILE = 'aesecure_quickscan_lang_%s.json';
 
     // Hard-coded list of supported languages
-    // @See https://github.com/afuj/aesecure_quickscan for xxx_lang_xxxx.json files
+    // @See https://github.com/afuj/quickscan for xxx_lang_xxxx.json files
     public const SUPPORTED_LANGUAGES = 'en;en-GB;fr;fr-FR;nl;nl-BE';
 
     private string $_filename              = '';
