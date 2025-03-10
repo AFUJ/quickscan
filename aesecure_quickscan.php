@@ -2297,6 +2297,12 @@ class aeSecureScan
                         // Need to use "DIR . DS" so filenames will be absolute which is needed
                         $arrDeleteFiles = glob(DIR . DS . 'aesecure_quickscan_*.json');
 
+                        $arrDeleteFiles[] = DIR . DS . 'aesecure.png';
+						$arrDeleteFiles[] = DIR . DS . 'banner.svg';
+						$arrDeleteFiles[] = DIR . DS . 'make_hashes.php';
+						$arrDeleteFiles[] = DIR . DS . 'octocat.tmpl';
+						$arrDeleteFiles[] = DIR . DS . 'readme.md';
+
                         // And don't scan this script also
                         $arrDeleteFiles[] = DIR . DS . FILE;
 
