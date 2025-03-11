@@ -10,10 +10,11 @@
   </head>
   <body class="container">
     <h1>aeSecure QuickScan - Make hash</h1>
-    <p>To add a new version of a CMS, you need to</p>
+    <p>To add a new version of a CMS or an extension, you need to</p>
     <ol>
-        <li>create the folder corresponding to this CMS (e.g. /joomla or /wordpress)</li>
-        <li>create a sub-folder corresponding to the version number (e.g. /joomla/5.2.0)</li>
+        <li>create the folder corresponding to this CMS (/joomla, /wordpress, /J!extensions, /WPextensions)</li>
+        <li>copy zip files in the directory.
+        <li>note : in case of Joomla or WP, rename zip file so it just contains its version number (e.g. /joomla/5.2.0.zip)</li>
     </ol>
     <p>The JSON files will be generated automatically.</p>
     <hr/>
@@ -60,7 +61,7 @@ function rrmdir($folder, $killroot = false, $arrIgnoreFiles = ['.htaccess', 'ind
                     @unlink($folder . '/' . $file);
                 }
             } else {
-                rrmdir($folder . '/' . $file, true);
+                rrmdir($folder . '/' . $file, true, $arrIgnoreFiles);
             }
         }
     }
@@ -131,6 +132,46 @@ function json_val($string)
 
     // everything is OK
     return $result;
+}
+
+function recurceZip($path)
+{
+    $all_path = [];
+    $files = null;
+    if (file_exists($path) && is_dir($path)) {
+        $files = array_diff(scandir($path), array('..', '.'));
+    }
+    if ($files) {
+        foreach ($files as $key => $value) {
+            $file_info = pathinfo($value);
+            if (isset($file_info['extension']) && $file_info['extension'] === 'zip') {
+                $file_name = $path . '/' . $file_info['basename'];
+                $zip = new ZipArchive();
+                if ($zip->open($file_name) === true) {
+                    if (is_dir($path . '/' . $file_info['filename'])) { // zip déjà traité
+                        echo '<p class="text-danger">'.$file_name.' already unzipped.</p>';
+                        $zip->close();
+                        unlink($file_name);
+                        continue;// ignore
+                    }
+                    $all_path[] = $path . '/' . $file_info['filename'];
+                    $zip->extractTo($path . '/' . $file_info['filename']);
+                    $zip->close();
+                    unlink($file_name);
+                } else {
+                    echo '<p class="text-danger">Error unzipping '.$file_name.'.</p>';
+                }
+            }
+            if (!isset($file_info['extension'])) {
+                $all_path[] = $path . '/' . $file_info['filename'];
+            }
+        }
+    }
+    foreach ($all_path as $k => $v) {
+        $path = $v;
+        recurceZip($path);
+    }
+    return;
 }
 
 function makeJSON($folder, $filename)
@@ -243,7 +284,9 @@ function makeJSON($folder, $filename)
 
 $arrFolder = [
     ['joomla'      => 'J!'],
-    ['wordpress'   => 'WP']
+    ['wordpress'   => 'WP'],
+    ['J!extensions'   => ''],
+    ['WPextensions'   => '']
 ];
 
 $output = '';
@@ -260,6 +303,9 @@ foreach ($arrFolder as $arr) {
     }
 
     if (is_dir($hashFolder)) {
+
+        recurceZip($hashFolder); // unzip all zip files
+
         if (!in_array($Folder, ['blacklist', 'other'])) {
             // This is a folder like "Joomla" : one json file by subfolder since a subfolder contain a specific version of that CMS
             $subfolders = array_filter(glob($hashFolder . DS . '*'), 'is_dir');
@@ -282,6 +328,12 @@ foreach ($arrFolder as $arr) {
 
                 if ((!file_exists($filename)) || (in_array($Folder, ['blacklist', 'other']))) {
                     makeJSON($folder, $filename);
+                    echo '<p class="text-success">'.$filename.' has been created.</p>';
+                } else {
+                    echo '<p class="text-danger">'.$filename.' has been ignored.</p>';
+                }
+                if (is_dir($folder)) { // unzipped folder ?
+                    rrmdir($folder, true, []);
                 }
             }
 
@@ -299,6 +351,5 @@ foreach ($arrFolder as $arr) {
       <hr/>
    </body>
 
-   <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.min.js"></script>
 </html>
