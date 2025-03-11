@@ -207,6 +207,10 @@ function makeJSON($folder, $filename)
             if ($file == $folder . DS . 'readme.txt') {
                 continue;
             }
+			// ignore installation directory
+			if (str_starts_with($file,$folder . DS .'installation')) {
+				continue;
+			}
             $relativefName = str_replace($folder, '', $file);
 
             // If the filename is called aesecure_quickscan.whitelist.json or
