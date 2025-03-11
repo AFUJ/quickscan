@@ -2340,7 +2340,7 @@ class aeSecureScan
 						// remove quickscan directories
 						$arrDeleteFolders = ['settings','hashes','utils'];
 						foreach ($arrDeleteFolders as $folder) {
-							self::rrmdir(DIR . DS . $folder, true, []);
+							$this->rrmdir(DIR . DS . $folder, true, []);
 						}
                     }
 
