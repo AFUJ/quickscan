@@ -111,7 +111,7 @@
  *      So, don't use __DIR__ but c:/sites/hacked/
  */
 
-define('REPO', 'https://github.com/cavo789/aesecure_quickscan');
+define('REPO', 'https://github.com/AFUJ/quickscan/');
 
 define('DIR', str_replace('/', DIRECTORY_SEPARATOR, dirname((string) $_SERVER['SCRIPT_FILENAME'])));
 define('FILE', str_replace('/', DIRECTORY_SEPARATOR, basename((string) $_SERVER['SCRIPT_FILENAME'])));
@@ -133,7 +133,7 @@ define('MEMORY_LIMIT', '256M');      // DEBUG MODE ONLY - Maximum memory limit t
 define('CURL_TIMEOUT', 2);           // Max number of seconds before the timeout when requesting a JSON file from avonture.be
 
 // Download URL for the file with CMS hashes
-define('DOWNLOAD_URL', 'https://raw.githubusercontent.com/cavo789/aesecure_quickscan/master/');
+define('DOWNLOAD_URL', 'https://raw.githubusercontent.com/AFUJ/quickscan/master/');
 define('MD5', '');
 define('DIRNOTFOUND', 'Directory not found');
 
