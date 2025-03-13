@@ -3,9 +3,9 @@
 /**
  * Name          : aeSecure QuickScan - Free scanner
  * Description   : Scan your website for possible hacks, viruses, malwares, SEO black hat and exploits
- * Version       : 2.0.3
+ * Version       : 2.1.0
  * Date          : November 2018
- * Last update   : September 2023
+ * Last update   : March 2025
  * Author        : AVONTURE Christophe (christophe@avonture.be)
  * Author website: https://www.avonture.be.
  *
@@ -26,8 +26,9 @@
  *
  * Changelog:
  *
- * version 2.0.4
- *    + Repository moved to AFUJ
+ * version 2.1.0
+ *	+ Moving project to afuj
+ *	+ Add extensions hashes
  *
  * version 2.0.3
  *    + Prevent empty files to be scanned
@@ -478,7 +479,7 @@ class aeSecureLanguage
     public const LANG_FILE = 'aesecure_quickscan_lang_%s.json';
 
     // Hard-coded list of supported languages
-    // @See https://github.com/cavo789/aesecure_quickscan for xxx_lang_xxxx.json files
+    // @See https://github.com/afuj/quickscan for xxx_lang_xxxx.json files
     public const SUPPORTED_LANGUAGES = 'en;en-GB;fr;fr-FR;nl;nl-BE';
 
     private string $_filename              = '';
@@ -1087,11 +1088,11 @@ class aeSecureFiles
                 if ('.' == $file || '..' == $file || in_array($file, $arrIgnoreFiles)) {
                     continue;
                 }
-                if (!self::rrmdir($folder . DS . $file)) {
+                if (!self::rrmdir($folder . DS . $file, $killroot, $arrIgnoreFiles)) {
                     if (!is_writable($folder . DS . $file)) {
                         $bResult = chmod($folder . DS . $file, octdec('755'));
                     }
-                    if (!self::rrmdir($folder . DS . $file)) {
+                    if (!self::rrmdir($folder . DS . $file, $killroot, $arrIgnoreFiles)) {
                         return false;
                     }
                 }
@@ -2113,6 +2114,7 @@ class aeSecureScan
     private $_arrOtherHashes     = null; // Array with whitelisted files (files whitelisted during aeSecure DeepScan runs)
     private $_arrBlackListHashes = null; // Array with blacklisted files (the file is a virus)
     private $_arrEditedHashes    = null; // Array with hash of edited files (a virus was appended in a file)
+    private $_arrExtHashes       = null; // Array with the hash of the installed CMS extensions
 
     public function __construct()
     {
@@ -2303,8 +2305,21 @@ class aeSecureScan
                         // And don't scan this script also
                         $arrDeleteFiles[] = DIR . DS . FILE;
 
-                        // Kill the debug log file if present
-                        if (null !== $this->aeLog) {
+						$arrDeleteFiles[] = DIR . DS . 'aesecure.png';
+						$arrDeleteFiles[] = DIR . DS . 'banner.svg';
+						$arrDeleteFiles[] = DIR . DS . 'LICENCE';
+						$arrDeleteFiles[] = DIR . DS . 'make_hashes.php';
+						$arrDeleteFiles[] = DIR . DS . 'octocat.tmpl';
+						$arrDeleteFiles[] = DIR . DS . 'readme.md';                        
+						$arrDeleteFiles[] = DIR . DS . 'images' . DS . 'expert.png';                        
+						$arrDeleteFiles[] = DIR . DS . 'images' . DS . 'files.png'; 
+						$arrDeleteFiles[] = DIR . DS . 'images' . DS . 'files_extended.png';                        
+						$arrDeleteFiles[] = DIR . DS . 'images' . DS . 'interface.png';                        
+						$arrDeleteFiles[] = DIR . DS . 'images' . DS . 'nothing_to_scan.png';                        
+						$arrDeleteFiles[] = DIR . DS . 'images' . DS . 'virus_of_mine.png';                        
+						
+						// Kill the debug log file if present
+						if (null !== $this->aeLog) {
                             $arrDeleteFiles[] = $this->aeLog->filename();
                         }
 
@@ -2322,6 +2337,11 @@ class aeSecureScan
                                 }
                             }
                         }
+						// remove quickscan directories
+						$arrDeleteFolders = ['settings','hashes','utils'];
+						foreach ($arrDeleteFolders as $folder) {
+							$this->aeFiles->rrmdir(DIR . DS . $folder, true, []);
+						}
                     }
 
                     die('<div class="alert alert-info" role="alert">' .
@@ -2488,6 +2508,37 @@ class aeSecureScan
 
         // No given task given, display the HTML page
     }
+    public function getExtHashes(string $CMS): array
+    {
+        if (null == $CMS) {
+            return [null, null];
+        }
+
+        $file = DIR . DS . self::SUPPORTED_CMS;
+        if (!is_file($file)) {
+            return [null, null];
+        }
+
+        $arrCMS = json_decode(file_get_contents($file), true, 512, JSON_THROW_ON_ERROR);
+        $prefix = $arrCMS[strtolower($CMS)]['prefix'];
+
+        $hashes = DIR . DS . 'hashes' . DS . $prefix . 'extensions';
+        if (!is_dir($hashes)) {
+            return [null,null];
+        }
+        $arrHashes = [];
+        $files = array_diff(scandir($hashes), array('..', '.'));
+        foreach ($files as $key => $json) {
+            $file_info = pathinfo($hashes.DS.$json);
+            if (isset($file_info['extension']) && $file_info['extension'] === 'json') {
+                $arr = json_decode(file_get_contents($hashes.DS.$json), true, 512, JSON_THROW_ON_ERROR);
+                $arrHashes = array_merge($arrHashes, $arr);
+            }
+        }
+
+        return [$arrHashes];
+    }
+
 
     /**
      * Download from avonture.be a json file with the hash of natives files of,
@@ -2636,6 +2687,8 @@ class aeSecureScan
         [$CMS, $CMSFullVersion, $CMSMainVersion, $CMSVersion, $SiteRoot] = aeSecureCMS::getInfo($this->_directory);
 
         [$this->_arrCMSHashes] = $this->gethashes($CMS, $CMSVersion);
+
+        [$this->_arrExtHashes] = $this->getExtHashes($CMS);
 
         // Get whitelist.json and other.json
         for ($i = 0; $i < 2; $i++) {
@@ -2799,7 +2852,7 @@ class aeSecureScan
                             $arrFiles[] = $filename;
                             $arrFilesEditlisted[] = str_replace(DIR . '/', '', $filename);
                             ++$wNbrEdited;
-                        } elseif (isset($this->_arrCMSHashes[$md5]) || isset($this->_arrWhiteListHashes[$md5]) || isset($this->_arrOtherHashes[$md5])) {
+                        } elseif (isset($this->_arrCMSHashes[$md5]) || isset($this->_arrWhiteListHashes[$md5]) || isset($this->_arrOtherHashes[$md5]) || isset($this->_arrExtHashes[$md5])) {
                             // if the hash of file is listed in the CMS core file,
                             // white list or other hashes, don't process it, the file is safe
                             ++$wNbrWhitelisted;
@@ -3042,7 +3095,7 @@ class aeSecureScan
 
                             // Check if the file is a white listed one or found in
                             // the Other hashes (also white listed)
-                            if (isset($this->_arrWhiteListHashes[$md5]) || isset($this->_arrOtherHashes[$md5])) {
+                            if (isset($this->_arrWhiteListHashes[$md5]) || isset($this->_arrOtherHashes[$md5]) || isset($this->_arrExtHashes[$md5])) {
                                 ++$wSkipHashes;
 
                                 if (FULLDEBUG && !aeSecureFct::isAjaxRequest()) {
@@ -3531,10 +3584,10 @@ if (is_file($cat = __DIR__ . DIRECTORY_SEPARATOR . 'octocat.tmpl')) {
         <link href="favicon.ico" rel="shortcut icon" type="image/vnd.microsoft.icon"/>
         <?php
             echo aeSecureFct::addStylesheet('libs/bootstrap/css/bootstrap.min.css', '//maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css');
-        echo aeSecureFct::addStylesheet('libs/tablesorter/css/theme.ice.min.css', 'https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.24.5/css/theme.ice.min.css');
-        echo aeSecureFct::addStylesheet('libs/alertify/css/alertify.core.css', 'https://cdnjs.cloudflare.com/ajax/libs/alertify.js/0.3.11/alertify.core.css');
-        echo aeSecureFct::addStylesheet('libs/alertify/css/alertify.bootstrap.css', 'https://cdnjs.cloudflare.com/ajax/libs/alertify.js/0.3.11/alertify.bootstrap.css');
-        ?>
+echo aeSecureFct::addStylesheet('libs/tablesorter/css/theme.ice.min.css', 'https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.24.5/css/theme.ice.min.css');
+echo aeSecureFct::addStylesheet('libs/alertify/css/alertify.core.css', 'https://cdnjs.cloudflare.com/ajax/libs/alertify.js/0.3.11/alertify.core.css');
+echo aeSecureFct::addStylesheet('libs/alertify/css/alertify.bootstrap.css', 'https://cdnjs.cloudflare.com/ajax/libs/alertify.js/0.3.11/alertify.bootstrap.css');
+?>
         <style type="text/css">
             #DebugMode{background-color:red;color:yellow;padding:5px;margin:10px;right:0px;}
             #DemoMode{background-color:orange;color:white;padding:5px;margin:10px;}
@@ -3590,16 +3643,16 @@ if (is_file($cat = __DIR__ . DIRECTORY_SEPARATOR . 'octocat.tmpl')) {
         <div class="container-full">
 
             <?php
-            if (DEMO) {
-                echo '<span id="DemoMode" class="blink img-rounded bottomright">' .
-                'Demo Mode Enabled</span>';
-            }
+    if (DEMO) {
+        echo '<span id="DemoMode" class="blink img-rounded bottomright">' .
+        'Demo Mode Enabled</span>';
+    }
 
-            if (DEBUG || true === $aeSession::get('Debug', DEBUG)) {
-                echo '<span id="DebugMode" class="bottomright blink img-rounded" ' .
-                'style="cursor:pointer;">Debug Mode Enabled</span>';
-            }
-            ?>
+if (DEBUG || true === $aeSession::get('Debug', DEBUG)) {
+    echo '<span id="DebugMode" class="bottomright blink img-rounded" ' .
+    'style="cursor:pointer;">Debug Mode Enabled</span>';
+}
+?>
 
             <!-- Advanced menu -->
             <div class="menu-wrap">
@@ -3616,27 +3669,27 @@ if (is_file($cat = __DIR__ . DIRECTORY_SEPARATOR . 'octocat.tmpl')) {
     // Retrieve the list of JSON files that match
     // aesecure_quickscan_*.json
     // f.i. aesecure_quickscan
-                                    $script  = str_replace('.php', '', basename(__FILE__));
+                        $script  = str_replace('.php', '', basename(__FILE__));
 
 // f.i. aesecure_quickscan_lang_*.json
-                                    $pattern = str_replace('.php', '_lang_*.json', basename(__FILE__));
+$pattern = str_replace('.php', '_lang_*.json', basename(__FILE__));
 
-                                    $arr = glob($pattern);
+$arr = glob($pattern);
 
-                                    if (count($arr) > 0) {
-                                        foreach ($arr as $filename) {
-                                            $lang = str_replace(
-                                                '.json',
-                                                '',
-                                                str_replace($script . '_lang_', '', (string) $filename)
-                                            );
-                                            echo '<option value="' . $lang . '"' .
-                                                ($aeLanguage->getlang() == $lang
-                                                ? ' selected="selected"'
-                                                : '') . '>' . $lang . '</option>';
-                                        }
-                                    }
-                                    ?>
+if (count($arr) > 0) {
+    foreach ($arr as $filename) {
+        $lang = str_replace(
+            '.json',
+            '',
+            str_replace($script . '_lang_', '', (string) $filename)
+        );
+        echo '<option value="' . $lang . '"' .
+            ($aeLanguage->getlang() == $lang
+            ? ' selected="selected"'
+            : '') . '>' . $lang . '</option>';
+    }
+}
+?>
                                 </select>
                             </div>
                         </div>
@@ -3651,10 +3704,10 @@ if (is_file($cat = __DIR__ . DIRECTORY_SEPARATOR . 'octocat.tmpl')) {
                                     <label>
                                         <input type="checkbox" id="chkExpert" name="chkExpert" title=""
                                             <?php
-                                            if (true === $aeSession::get('Expert', EXPERT)) {
-                                                echo 'checked="checked" ';
-                                            }
-                                            ?>
+        if (true === $aeSession::get('Expert', EXPERT)) {
+            echo 'checked="checked" ';
+        }
+                                    ?>
                                         >
                                         <?php echo $aeLanguage->get('EXPERT_MODE');?>
                                     </label>
@@ -3666,7 +3719,7 @@ if (is_file($cat = __DIR__ . DIRECTORY_SEPARATOR . 'octocat.tmpl')) {
                                         if (true === $aeSession::get('Debug', DEBUG)) {
                                             echo 'checked="checked" ';
                                         }
-                                        ?>
+?>
                                     >
                                     <?php echo $aeLanguage->get('DEBUG_MODE');?>
                                 </label>
@@ -3675,33 +3728,33 @@ if (is_file($cat = __DIR__ . DIRECTORY_SEPARATOR . 'octocat.tmpl')) {
 
                                 <?php
                                     $select = '';
-                                $wMax                                       = $aeSession::get('MaxFilesByCycle', MAXFILESBYCYCLE);
+$wMax                                       = $aeSession::get('MaxFilesByCycle', MAXFILESBYCYCLE);
 
-                                $arr    = [
-                                '250'  => 250,
-                                '500'  => 500,
-                                '1000' => 1000,
-                                '1250' => 1250,
-                                '1500' => 1500,
-                                '2500' => 2500,
-                                '5000' => 5000,
-                                '0'    => $aeLanguage->get('ALL')
-                                ];
+$arr    = [
+'250'  => 250,
+'500'  => 500,
+'1000' => 1000,
+'1250' => 1250,
+'1500' => 1500,
+'2500' => 2500,
+'5000' => 5000,
+'0'    => $aeLanguage->get('ALL')
+];
 
-                                foreach ($arr as $key => $value) {
-                                    $select .= '<option value="' . $key . '" ' .
-                                         (($wMax == $key) ? 'selected="SELECTED"' : '') . '>' .
-                                         $value . '</option>';
-                                }
+foreach ($arr as $key => $value) {
+    $select .= '<option value="' . $key . '" ' .
+         (($wMax == $key) ? 'selected="SELECTED"' : '') . '>' .
+         $value . '</option>';
+}
 
-                                $select = sprintf(
-                                    $aeLanguage->get('EXPERT_MAXFILES'),
-                                    '<select id="nbrFilesCycle" name="nbrFilesCycle">' .
-                                    $select . '</select>'
-                                );
+$select = sprintf(
+    $aeLanguage->get('EXPERT_MAXFILES'),
+    '<select id="nbrFilesCycle" name="nbrFilesCycle">' .
+    $select . '</select>'
+);
 
-                                echo '<label>' . $select . '</label>';
-                                ?>
+echo '<label>' . $select . '</label>';
+?>
 
                             </div>
                         </div>
@@ -3713,20 +3766,20 @@ if (is_file($cat = __DIR__ . DIRECTORY_SEPARATOR . 'octocat.tmpl')) {
                             <div class="checkbox">
                                 <label title="
                                     <?php
-                                    echo sprintf($aeLanguage->get('IGNORE_EXTENSIONS'), ExtArchives);
-                                    ?>"
+    echo sprintf($aeLanguage->get('IGNORE_EXTENSIONS'), ExtArchives);
+?>"
                                 >
                                 <input type="checkbox" id="chkIgnoreArchives" name="chkIgnoreArchives"
                                     <?php
-                                    if (1 === $aeSession::get('IgnoreArchives', 1)) {
-                                        echo 'checked="checked" ';
-                                    }
-                                    ?>
+if (1 === $aeSession::get('IgnoreArchives', 1)) {
+    echo 'checked="checked" ';
+}
+?>
                                 >
                                 <?php
                                 echo $aeLanguage->get('IGNORE_ARCHIVE') .
                                 '<br/><span class="ignoredext">' . ExtArchives . '</span>';
-                                ?>
+?>
 
                                 </label>
 
@@ -3734,20 +3787,20 @@ if (is_file($cat = __DIR__ . DIRECTORY_SEPARATOR . 'octocat.tmpl')) {
 
                                 <label title="
                                     <?php
-                                    echo sprintf($aeLanguage->get('IGNORE_EXTENSIONS'), ExtDocuments);
-                                    ?>"
+    echo sprintf($aeLanguage->get('IGNORE_EXTENSIONS'), ExtDocuments);
+?>"
                                 >
                                 <input type="checkbox" id="chkIgnoreDocuments" name="chkIgnoreDocuments"
                                     <?php
-                                    if (1 === $aeSession::get('IgnoreDocuments', 1)) {
-                                        echo 'checked="checked" ';
-                                    }
-                                    ?>
+if (1 === $aeSession::get('IgnoreDocuments', 1)) {
+    echo 'checked="checked" ';
+}
+?>
                                 >
                                 <?php
                                 echo $aeLanguage->get('IGNORE_DOCUMENTS') . '<br/>' .
                                 '<span class="ignoredext">' . ExtDocuments . '</span>';
-                                ?>
+?>
 
                                 </label>
 
@@ -3755,20 +3808,20 @@ if (is_file($cat = __DIR__ . DIRECTORY_SEPARATOR . 'octocat.tmpl')) {
 
                                 <label title="
                                     <?php
-                                    echo sprintf($aeLanguage->get('IGNORE_EXTENSIONS'), ExtFonts);
-                                    ?>"
+    echo sprintf($aeLanguage->get('IGNORE_EXTENSIONS'), ExtFonts);
+?>"
                                 >
                                 <input type="checkbox" id="chkIgnoreFonts" name="chkIgnoreFonts"
                                     <?php
-                                    if (1 === $aeSession::get('IgnoreFonts', 1)) {
-                                        echo 'checked="checked" ';
-                                    }
-                                    ?>
+if (1 === $aeSession::get('IgnoreFonts', 1)) {
+    echo 'checked="checked" ';
+}
+?>
                                 >
                                 <?php
                                 echo $aeLanguage->get('IGNORE_FONT') . '<br/>' .
                                 '<span class="ignoredext">' . ExtFonts . '</span>';
-                                ?>
+?>
 
                                 </label>
 
@@ -3776,19 +3829,19 @@ if (is_file($cat = __DIR__ . DIRECTORY_SEPARATOR . 'octocat.tmpl')) {
 
                                 <label title="
                                     <?php
-                                    echo sprintf($aeLanguage->get('IGNORE_EXTENSIONS'), ExtImages);
-                                    ?>"
+    echo sprintf($aeLanguage->get('IGNORE_EXTENSIONS'), ExtImages);
+?>"
                                 >
                                 <input type="checkbox" id="chkIgnoreImages" name="chkIgnoreImages"
                                     <?php
-                                    if (1 === $aeSession::get('IgnoreImages', 1)) {
-                                        echo 'checked="checked" ';
-                                    }
-                                    ?>
+if (1 === $aeSession::get('IgnoreImages', 1)) {
+    echo 'checked="checked" ';
+}
+?>
                                 >
                                 <?php echo $aeLanguage->get('IGNORE_IMAGES') . '<br/>' .
                                 '<span class="ignoredext">' . ExtImages . '</span>';
-                                ?>
+?>
 
                                 </label>
 
@@ -3796,20 +3849,20 @@ if (is_file($cat = __DIR__ . DIRECTORY_SEPARATOR . 'octocat.tmpl')) {
 
                                 <label title="
                                     <?php
-                                    echo sprintf($aeLanguage->get('IGNORE_EXTENSIONS'), ExtMedia);
-                                    ?>"
+    echo sprintf($aeLanguage->get('IGNORE_EXTENSIONS'), ExtMedia);
+?>"
                                 >
                                 <input type="checkbox" id="chkIgnoreMedia" name="chkIgnoreMedia"
                                     <?php
-                                    if (1 === $aeSession::get('IgnoreMedia', 1)) {
-                                        echo 'checked="checked" ';
-                                    }
-                                    ?>
+if (1 === $aeSession::get('IgnoreMedia', 1)) {
+    echo 'checked="checked" ';
+}
+?>
                                 >
                                 <?php
                                 echo $aeLanguage->get('IGNORE_MEDIA') . '<br/>' .
                                 '<span class="ignoredext">' . ExtMedia . '</span>';
-                                ?>
+?>
 
                                 </label>
 
@@ -3817,21 +3870,21 @@ if (is_file($cat = __DIR__ . DIRECTORY_SEPARATOR . 'octocat.tmpl')) {
 
                                 <label title="
                                     <?php
-                                    echo sprintf($aeLanguage->get('IGNORE_EXTENSIONS'), ExtSoundMovies);
-                                    ?>
+    echo sprintf($aeLanguage->get('IGNORE_EXTENSIONS'), ExtSoundMovies);
+?>
                                 ">
                                 <input type="checkbox" id="chkIgnoreSoundMovies"
                                     name="chkIgnoreSoundMovies"
                                     <?php
-                                    if (1 === $aeSession::get('IgnoreSoundMovies', 1)) {
-                                        echo 'checked="checked" ';
-                                    }
-                                    ?>
+if (1 === $aeSession::get('IgnoreSoundMovies', 1)) {
+    echo 'checked="checked" ';
+}
+?>
                                 >
                                 <?php
                                 echo $aeLanguage->get('IGNORE_MOVIES') . '<br/>' .
                                 '<span class="ignoredext">' . ExtSoundMovies . '</span>';
-                                ?>
+?>
 
                                 </label>
 
@@ -3839,19 +3892,19 @@ if (is_file($cat = __DIR__ . DIRECTORY_SEPARATOR . 'octocat.tmpl')) {
 
                                 <label title="
                                     <?php
-                                    echo sprintf($aeLanguage->get('IGNORE_EXTENSIONS'), ExtText);
-                                    ?>"
+    echo sprintf($aeLanguage->get('IGNORE_EXTENSIONS'), ExtText);
+?>"
                                 >
                                 <input type="checkbox" id="chkIgnoreText" name="chkIgnoreText"
                                     <?php
-                                    if (1 === $aeSession::get('IgnoreText', 1)) {
-                                        echo 'checked="checked" ';
-                                    }
-                                    ?>
+if (1 === $aeSession::get('IgnoreText', 1)) {
+    echo 'checked="checked" ';
+}
+?>
                                 >
                                 <?php echo $aeLanguage->get('IGNORE_TEXTES') . '<br/>' .
                                 '<span class="ignoredext">' . ExtText . '</span>';
-                                ?>
+?>
 
                             </div>
                         </div>
@@ -3881,7 +3934,7 @@ if (is_file($cat = __DIR__ . DIRECTORY_SEPARATOR . 'octocat.tmpl')) {
                         die();
                     }
 
-                    ?>
+?>
 
                     <?php echo $siteInfos;?>
 
@@ -3894,11 +3947,11 @@ if (is_file($cat = __DIR__ . DIRECTORY_SEPARATOR . 'octocat.tmpl')) {
                                     src="data:image/png;base64,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"/>                            
                             </a>
                             <?php
-                            echo sprintf(
-                                $aeLanguage->get('ALERTINFO'),
-                                aeSecureFct::human_filesize(MAX_SIZE, 0)
-                            );
-                            ?>
+        echo sprintf(
+            $aeLanguage->get('ALERTINFO'),
+            aeSecureFct::human_filesize(MAX_SIZE, 0)
+        );
+?>
                         </div>
 
                         <?php
@@ -3906,7 +3959,7 @@ if (is_file($cat = __DIR__ . DIRECTORY_SEPARATOR . 'octocat.tmpl')) {
                         if (!$aeLanguage->ready()) {
                             echo '<div class="alert alert-warning fade in" >';
                             echo '<div class="text-danger">Error. No translation file found. ' .
-                                'Please download the <a href="https://github.com/cavo789/aesecure_quickscan" ' .
+                                'Please download the <a href="https://github.com/afuj/aesecure_quickscan" ' .
                                 'target="_blank">aeSecure QuickScan</a> archive again and take ' .
                                 'the json file that match your preferred language ' .
                                 '(for instance aesecure_quickscan_en-GB.json). ' .
@@ -3967,7 +4020,7 @@ if (is_file($cat = __DIR__ . DIRECTORY_SEPARATOR . 'octocat.tmpl')) {
 
                             $aeProgress->getHTML();
                         }
-                        ?>
+?>
                     </div>
 
                     <?php echo $aeScan->getHTMLFooter(); ?>
@@ -3982,23 +4035,23 @@ if (is_file($cat = __DIR__ . DIRECTORY_SEPARATOR . 'octocat.tmpl')) {
                 '//ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js'
             );
 
-            echo aeSecureFct::addJavascript(
-                'libs/bootstrap/js/bootstrap.min.js',
-                '//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js'
-            );
+echo aeSecureFct::addJavascript(
+    'libs/bootstrap/js/bootstrap.min.js',
+    '//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js'
+);
 
-            echo aeSecureFct::addJavascript(
-                'libs/tablesorter/js/jquery.tablesorter.combined.js',
-                'https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.24.5/js/jquery.tablesorter.combined.js',
-                true
-            );
+echo aeSecureFct::addJavascript(
+    'libs/tablesorter/js/jquery.tablesorter.combined.js',
+    'https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.24.5/js/jquery.tablesorter.combined.js',
+    true
+);
 
-            echo aeSecureFct::addJavascript(
-                'libs/alertify/js/alertify.min.js',
-                'https://cdnjs.cloudflare.com/ajax/libs/alertify.js/0.3.11/alertify.min.js',
-                true
-            );
-            ?>
+echo aeSecureFct::addJavascript(
+    'libs/alertify/js/alertify.min.js',
+    'https://cdnjs.cloudflare.com/ajax/libs/alertify.js/0.3.11/alertify.min.js',
+    true
+);
+?>
 
         <script defer="defer">
             $(document).ready(function() {
