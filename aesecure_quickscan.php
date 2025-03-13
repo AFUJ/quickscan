@@ -26,6 +26,9 @@
  *
  * Changelog:
  *
+ * version 2.0.4
+ *    + Repository moved to AFUJ
+ *
  * version 2.0.3
  *    + Prevent empty files to be scanned
  *    + Immediately show the listing of files having detected as being a virus (blacklist) or
@@ -122,7 +125,7 @@ define('DEMO', false);
 
 define('DEBUG', false);              // Enable debugging (Note: there is no progress bar in debug mode)
 define('FULLDEBUG', false);          // Output a lot of information
-define('VERSION', '2.0.3');          // Version number of this script
+define('VERSION', '2.0.4');          // Version number of this script
 define('EXPERT', false);             // Display Kill file button and allow to specify a folder
 define('MAX_SIZE', 1 * 1024 * 1024); // One megabyte: skip files when filesize is greater than this max size.
 define('MAXFILESBYCYCLE', 500);      // Number of files to process by cycle, reduce this figure if you receive HTTP error 504 - Gateway timeout
