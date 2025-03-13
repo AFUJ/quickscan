@@ -181,6 +181,7 @@ Si vous avez les permissions d'écriture sur le dépôt [https://github.com/AFUJ
 </details>
 <details>
   <summary>English - Anglais</summary>
+  
 > PHP script to install on your site (preferably in localhost for better performance) to scan files for viruses.
 
 **aeSecure QuickScan already RECOGNISE MORE THAN 47.750 VIRUSES (September 2023) and use whitelist hashes to avoid to scan [WordPress](https://github.com/cavo789/aesecure_quickscan/tree/master/hashes/wordpress) and [Joomla](https://github.com/cavo789/aesecure_quickscan/tree/master/hashes/joomla) native files.**
