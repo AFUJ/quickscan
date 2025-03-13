@@ -12,7 +12,7 @@
 
 > Script PHP à installer sur votre site (de préférence en localhost pour de meilleures performances) pour analyser les fichiers à la recherche de virus.
 
-**aeSecure QuickScan RECONNAÎT DÉJÀ PLUS DE 47 750 VIRUS (septembre 2023) et utilise des hachages de liste blanche pour éviter d'analyser les fichiers natifs de [WordPress](https://github.com/cavo789/aesecure_quickscan/tree/master/hashes/wordpress) et [Joomla](https://github.com/cavo789/aesecure_quickscan/tree/master/hashes/joomla).**
+**aeSecure QuickScan RECONNAÎT DÉJÀ PLUS DE 47 750 VIRUS (septembre 2023) et utilise des hachages de liste blanche pour éviter d'analyser les fichiers natifs de [WordPress](https://github.com/AFUJ/quickscan/tree/master/hashes/wordpress) et [Joomla](https://github.com/AFUJ/quickscan/tree/master/hashes/joomla).**
 
 > ℹ️ **INSTALLATION**
 > Vous avez juste besoin d'obtenir une copie de `aesecure_quickscan.php` et rien d'autre ; veuillez lire le [guide d'installation](#installation).
@@ -32,7 +32,7 @@ Vous pouvez jouer en ligne avec une démo ici : [https://quickscan.avonture.be/]
 
 aeSecure QuickScan téléchargera automatiquement les fichiers dont il a besoin, donc la seule chose que vous devez faire est d'obtenir une copie du fichier `aesecure_quickscan.php` et rien d'autre.
 
-1. Cliquez sur le lien suivant pour ouvrir le fichier dans une nouvelle fenêtre : [obtenir une copie du script](https://raw.githubusercontent.com/cavo789/aesecure_quickscan/master/aesecure_quickscan.php)
+1. Cliquez sur le lien suivant pour ouvrir le fichier dans une nouvelle fenêtre : [obtenir une copie du script](https://raw.githubusercontent.com/AFUJ/quickscan/master/aesecure_quickscan.php)
 2. Enregistrez le fichier à la racine de votre site web *(de préférence un site local pour des raisons de performance)*
 
 Remarque : vous n'êtes pas obligé de nommer le fichier aesecure_quickscan, vous pouvez par exemple le nommer `scan.php`.
@@ -57,7 +57,7 @@ Si vous utilisez Docker, vous pouvez également exécuter l'interface en lançan
 
 aeSecure QuickScan téléchargera automatiquement trois ou quatre fichiers :
 
-- `aesecure_quickscan_lang_en-GB.json` (peut aussi être fr-FR ou nl-BE) qui est le fichier pour votre langue. La langue préférée sera détectée à partir de la configuration de votre navigateur ;
+- `aesecure_quickscan_lang_de-FR.json` (peut aussi être en-GB ou nl-BE) qui est le fichier pour votre langue. La langue préférée sera détectée à partir de la configuration de votre navigateur ;
 - `aesecure_quickscan_pattern.json` contient des éléments de configuration pour le scanner ;
 - `aesecure_quickscan_supported_cms.json` contient une liste de logiciels CMS reconnus par le scanner.
 
@@ -96,7 +96,7 @@ Vous devez cliquer sur ce bouton en premier.
 
 2. Obtenir la liste des fichiers
 
-Avant de commencer l'analyse, QuickScan doit savoir combien de fichiers il doit analyser. L'action `Obtention de la liste des fichiers` récupérera la liste de tous les fichiers de votre site et tous les fichiers de la liste blanche seront ignorés. Un fichier de la liste blanche est un fichier que QuickScan sait être propre. Comment ? Parce que le hachage md5 du fichier est mentionné dans un fichier de liste blanche comme le `aesecure_quickscan_J!3.9.0.json` (ou tout autre fichier de liste blanche).
+Avant de commencer l'analyse, QuickScan doit savoir combien de fichiers il doit analyser. L'action `Obtention de la liste des fichiers` récupérera la liste de tous les fichiers de votre site et tous les fichiers de la liste blanche seront ignorés. Un fichier de la liste blanche est un fichier que QuickScan sait être propre. Comment ? Parce que le hachage md5 du fichier est mentionné dans un fichier de liste blanche comme le `aesecure_quickscan_J!5.2.5.json` (ou tout autre fichier de liste blanche).
 
 En d'autres termes : `Obtention de la liste des fichiers` ne récupérera que les fichiers qui doivent être analysés. Dans une installation fraîche de Joomla ou WordPress, vous aurez très peu de fichiers à analyser puisque les fichiers natifs, de base, sont dans la liste blanche. Explication : J'ai généré des hachages pour de nombreuses versions (voir https://github.com/cavo789/aesecure_quickscan/tree/master/hashes/joomla et https://github.com/cavo789/aesecure_quickscan/tree/master/hashes/wordpress). Dès que QuickScan peut récupérer un fichier de hachage pour la version de Joomla/Wordpress que vous utilisez, un hachage sera calculé pour chaque fichier de votre site et si ce hachage est reconnu, cela signifie que votre fichier est sain, c'est-à-dire que son contenu est exactement celui présent dans une installation fraîche de Joomla/Wordpress et ne contient donc aucun virus. Dès qu'un fichier de base a été modifié, même avec un simple caractère d'espace, le hachage sera différent et donc non récupéré dans la liste. En conséquence, le fichier sera analysé même s'il fait partie des fichiers "de base" du CMS. Seuls les fichiers non modifiés seront considérés comme sains et non analysés.
 
@@ -172,7 +172,7 @@ Le script commencera immédiatement la création des hachages ; il n'y a rien à
 
 Après quelques secondes, vous obtiendrez de nouveaux fichiers JSON (un par version) dans `./hashes/joomla`. Vous pouvez maintenant, éventuellement, supprimer les sous-dossiers ; ils ne sont plus nécessaires.
 
-Si vous avez les permissions d'écriture sur le dépôt [https://github.com/cavo789/aesecure_quickscan](https://github.com/cavo789/aesecure_quickscan), poussez simplement les nouvelles signatures pour les rendre publiquement disponibles.
+Si vous avez les permissions d'écriture sur le dépôt [https://github.com/AFUJ/quickscan](https://github.com/AFUJ/quickscan), poussez simplement les nouvelles signatures pour les rendre publiquement disponibles.
 
 ## Licence
 
@@ -203,7 +203,7 @@ You can play online with a demo here : [https://quickscan.avonture.be/](https://
 
 aeSecure QuickScan will automatically download the files he needs, so the only thing you need to do is get a copy of the file `aesecure_quickscan.php` and nothing else.
 
-1. Click on the following link to open the file in a new window: [get a copy of the script](https://raw.githubusercontent.com/cavo789/aesecure_quickscan/master/aesecure_quickscan.php)
+1. Click on the following link to open the file in a new window: [get a copy of the script](https://raw.githubusercontent.com/AFUJ/quickscan/master/aesecure_quickscan.php)
 2. Save the file at the root of your website *(preferably a local website for performance reasons)*
 
 Note: you're not obliged to name the file aesecure_quickscan, you can f.i. name it `scan.php`.
@@ -269,7 +269,7 @@ You need to click on this button first.
 
 Before starting the scan, QuickScan needs to know how many files he needs to scan. The `Getting the file list` action will get the list of all files of your site and all whitelisted files will be ignored. A whitelisted file is a file that QuickScan knows he's clean. How? Because the md5 hash of the file is mentioned in a whitelist file like the `aesecure_quickscan_J!3.9.0.json` (or any other whitelist files).
 
-In other words: `Getting the file list` will only retrieve files that need to be scanned. In a fresh Joomla or WordPress installation, you'll have a very few files to scan since the native, core files are whitelisted. Explanation: I've generated hashes for a lot of versions (see https://github.com/cavo789/aesecure_quickscan/tree/master/hashes/joomla and https://github.com/cavo789/aesecure_quickscan/tree/master/hashes/wordpress). As soon as QuickScan can retrieve a hash file for the version of Joomla/Wordpress you're using, a hash will be computed for every single file of your site and if that hash is recognised, it means your file is healthy meaning his content is exactly the one present in a fresh installation of Joomla/Wordpress and thus didn't contain any viruses.  As soon as a core file has been altered, even with just a space character, the hash will be different thus not retrieved in the list. As a consequence, the file will be scanned even if part of the "core" files of the CMS. Only unmodified files will be considered as healthy and not scanned.
+In other words: `Getting the file list` will only retrieve files that need to be scanned. In a fresh Joomla or WordPress installation, you'll have a very few files to scan since the native, core files are whitelisted. Explanation: I've generated hashes for a lot of versions (see https://github.com/AFUJ/quickscan/tree/master/hashes/joomla and https://github.com/AFUJ/quickscan/tree/master/hashes/wordpress). As soon as QuickScan can retrieve a hash file for the version of Joomla/Wordpress you're using, a hash will be computed for every single file of your site and if that hash is recognised, it means your file is healthy meaning his content is exactly the one present in a fresh installation of Joomla/Wordpress and thus didn't contain any viruses.  As soon as a core file has been altered, even with just a space character, the hash will be different thus not retrieved in the list. As a consequence, the file will be scanned even if part of the "core" files of the CMS. Only unmodified files will be considered as healthy and not scanned.
 
 **Unmodified** files are whitelisted (if unchanged of course).
 
@@ -343,7 +343,7 @@ The script will immediately start the creation of the hashes; there is nothing t
 
 After a few seconds, you'll get new JSON files (one by version) in `./hashes/joomla`. You can now, optionally, remove the subfolders; no more needed.
 
-If you've written permissions to the [https://github.com/cavo789/aesecure_quickscan](https://github.com/cavo789/aesecure_quickscan) repository, just push new signatures to make them publicly available.
+If you've written permissions to the [https://github.com/AFUJ/quickscan](https://github.com/AFUJ/quickscan) repository, just push new signatures to make them publicly available.
 
 ## License
 
