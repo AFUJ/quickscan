@@ -26,6 +26,11 @@
  *
  * Changelog:
  *
+ =======
+ * version 2.1.1
+ *	+ Extensions hashes load if missing
+ *  + clean up other.json file
+ *
  * version 2.1.0
  *	+ Moving project to afuj
  *	+ Add extensions hashes
@@ -126,7 +131,7 @@ define('DEMO', false);
 
 define('DEBUG', false);              // Enable debugging (Note: there is no progress bar in debug mode)
 define('FULLDEBUG', false);          // Output a lot of information
-define('VERSION', '2.0.4');          // Version number of this script
+define('VERSION', '2.1.1');          // Version number of this script
 define('EXPERT', false);             // Display Kill file button and allow to specify a folder
 define('MAX_SIZE', 1 * 1024 * 1024); // One megabyte: skip files when filesize is greater than this max size.
 define('MAXFILESBYCYCLE', 500);      // Number of files to process by cycle, reduce this figure if you receive HTTP error 504 - Gateway timeout
@@ -2508,6 +2513,21 @@ class aeSecureScan
 
         // No given task given, display the HTML page
     }
+	    public function remotedir($dir)
+    {
+        $html = file_get_contents($dir);
+        $ret = [];
+        if (preg_match_all('/<a title="(.*?)"/i', $html, $matches, PREG_SET_ORDER)) {
+            foreach ($matches as $n) {
+                $str = $n[1];
+                if (!in_array($str, $ret)) {
+                    $ret[] = $str;
+                }
+            }
+        }
+        return $ret;
+    }
+
     public function getExtHashes(string $CMS): array
     {
         if (null == $CMS) {
@@ -2523,8 +2543,21 @@ class aeSecureScan
         $prefix = $arrCMS[strtolower($CMS)]['prefix'];
 
         $hashes = DIR . DS . 'hashes' . DS . $prefix . 'extensions';
-        if (!is_dir($hashes)) {
-            return [null,null];
+        if (!is_dir($hashes)) { // extensions hashes not loaded ?
+            if (!is_dir(DIR . DS . 'hashes')) { // hashes dir ok ?
+                @mkdir(DIR . DS . 'hashes');  // no : create it
+            }
+            @mkdir($hashes); // create extensions dir
+            // get extensions directory content
+			$url = 'https://github.com/AFUJ/quickscan/tree/master/hashes/'. $prefix . 'extensions';
+            $dir = self::remotedir($url);
+            foreach ($dir as $file) {
+                aeSecureDownload::get($file, 'hashes/'.$prefix . 'extensions');
+                if (file_exists(DIR.DS.$file)) { // copy ok
+                    rename(DIR.DS.$file, $hashes.DS.$file); // move it to hashes dir
+                    // unlink(DIR.DS.$file);
+                }
+            }
         }
         $arrHashes = [];
         $files = array_diff(scandir($hashes), array('..', '.'));
