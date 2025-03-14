@@ -2310,21 +2310,21 @@ class aeSecureScan
                         // And don't scan this script also
                         $arrDeleteFiles[] = DIR . DS . FILE;
 
-						$arrDeleteFiles[] = DIR . DS . 'aesecure.png';
-						$arrDeleteFiles[] = DIR . DS . 'banner.svg';
-						$arrDeleteFiles[] = DIR . DS . 'LICENCE';
-						$arrDeleteFiles[] = DIR . DS . 'make_hashes.php';
-						$arrDeleteFiles[] = DIR . DS . 'octocat.tmpl';
-						$arrDeleteFiles[] = DIR . DS . 'readme.md';                        
-						$arrDeleteFiles[] = DIR . DS . 'images' . DS . 'expert.png';                        
-						$arrDeleteFiles[] = DIR . DS . 'images' . DS . 'files.png'; 
-						$arrDeleteFiles[] = DIR . DS . 'images' . DS . 'files_extended.png';                        
-						$arrDeleteFiles[] = DIR . DS . 'images' . DS . 'interface.png';                        
-						$arrDeleteFiles[] = DIR . DS . 'images' . DS . 'nothing_to_scan.png';                        
-						$arrDeleteFiles[] = DIR . DS . 'images' . DS . 'virus_of_mine.png';                        
-						
-						// Kill the debug log file if present
-						if (null !== $this->aeLog) {
+                        $arrDeleteFiles[] = DIR . DS . 'aesecure.png';
+                        $arrDeleteFiles[] = DIR . DS . 'banner.svg';
+                        $arrDeleteFiles[] = DIR . DS . 'LICENCE';
+                        $arrDeleteFiles[] = DIR . DS . 'make_hashes.php';
+                        $arrDeleteFiles[] = DIR . DS . 'octocat.tmpl';
+                        $arrDeleteFiles[] = DIR . DS . 'readme.md';
+                        $arrDeleteFiles[] = DIR . DS . 'images' . DS . 'expert.png';
+                        $arrDeleteFiles[] = DIR . DS . 'images' . DS . 'files.png';
+                        $arrDeleteFiles[] = DIR . DS . 'images' . DS . 'files_extended.png';
+                        $arrDeleteFiles[] = DIR . DS . 'images' . DS . 'interface.png';
+                        $arrDeleteFiles[] = DIR . DS . 'images' . DS . 'nothing_to_scan.png';
+                        $arrDeleteFiles[] = DIR . DS . 'images' . DS . 'virus_of_mine.png';
+
+                        // Kill the debug log file if present
+                        if (null !== $this->aeLog) {
                             $arrDeleteFiles[] = $this->aeLog->filename();
                         }
 
@@ -2342,11 +2342,14 @@ class aeSecureScan
                                 }
                             }
                         }
-						// remove quickscan directories
-						$arrDeleteFolders = ['settings','hashes','utils'];
-						foreach ($arrDeleteFolders as $folder) {
-							$this->aeFiles->rrmdir(DIR . DS . $folder, true, []);
-						}
+                        // remove quickscan directories
+                        $arrDeleteFolders = ['settings',
+                                             'hashes'.DS.'joomla',
+                                             'hashes'.DS.'wordpress',
+                                             'utils'];
+                        foreach ($arrDeleteFolders as $folder) {
+                            $this->aeFiles->rrmdir(DIR . DS . $folder, true, []);
+                        }
                     }
 
                     die('<div class="alert alert-info" role="alert">' .
@@ -2513,7 +2516,7 @@ class aeSecureScan
 
         // No given task given, display the HTML page
     }
-	    public function remotedir($dir)
+    public function remotedir($dir)
     {
         $html = file_get_contents($dir);
         $ret = [];
@@ -2548,15 +2551,18 @@ class aeSecureScan
                 @mkdir(DIR . DS . 'hashes');  // no : create it
             }
             @mkdir($hashes); // create extensions dir
-            // get extensions directory content
-			$url = 'https://github.com/AFUJ/quickscan/tree/master/hashes/'. $prefix . 'extensions';
-            $dir = self::remotedir($url);
-            foreach ($dir as $file) {
-                aeSecureDownload::get($file, 'hashes/'.$prefix . 'extensions');
-                if (file_exists(DIR.DS.$file)) { // copy ok
-                    rename(DIR.DS.$file, $hashes.DS.$file); // move it to hashes dir
-                    // unlink(DIR.DS.$file);
-                }
+        }
+        $files = array_diff(scandir($hashes), array('..', '.')); // current list
+        // get extensions directory content from github
+        $url = 'https://github.com/AFUJ/quickscan/tree/master/hashes/'. $prefix . 'extensions';
+        $dir = self::remotedir($url);
+        foreach ($dir as $file) {
+            if (in_array($file, $files)) {
+                continue;// already loaded : next please
+            }
+            aeSecureDownload::get($file, 'hashes/'.$prefix . 'extensions');
+            if (file_exists(DIR.DS.$file)) { // copy ok
+                rename(DIR.DS.$file, $hashes.DS.$file); // move it to hashes dir
             }
         }
         $arrHashes = [];
