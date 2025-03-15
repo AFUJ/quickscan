@@ -2302,6 +2302,13 @@ class aeSecureScan
                     // inform if the script should or not remove the user's whitelist file.
                     $bKeepWhiteList = aeSecureFct::getParam('keepwhitelist', 'boolean', true);
 
+                    // get CMS for later use
+                    $file = DIR . DS . self::SUPPORTED_CMS;
+                    $arrCMS = json_decode(file_get_contents($file), true, 512, JSON_THROW_ON_ERROR);
+                    $arr = aeSecureCMS::getInfo($this->_directory);
+                    $CMS = $arr[0];
+                    $prefix = $arrCMS[strtolower($CMS)]['prefix'];
+
                     if (true !== $this->aeSession->get('Debug', DEBUG)) {
                         // Get the list of aeSecure QuickScan JSON
                         // Need to use "DIR . DS" so filenames will be absolute which is needed
@@ -2344,11 +2351,27 @@ class aeSecureScan
                         }
                         // remove quickscan directories
                         $arrDeleteFolders = ['settings',
-                                             'hashes'.DS.'joomla',
-                                             'hashes'.DS.'wordpress',
                                              'utils'];
+                        if (!$bKeepWhiteList) { // delete all hashes directories
+                            $arrDeleteFolders[] = 'hashes';
+                        } else { // delete only CMS hashes directories
+                            $arrDeleteFolders[] = 'hashes'.DS.'joomla';
+                            $arrDeleteFolders[] = 'hashes'.DS.'wordpress';
+                        }
                         foreach ($arrDeleteFolders as $folder) {
                             $this->aeFiles->rrmdir(DIR . DS . $folder, true, []);
+                        }
+                        if ($bKeepWhiteList) { // just keep customer extensions hashes
+                            // get std extensions list
+                            $url = 'https://github.com/AFUJ/quickscan/tree/master/hashes/'. $prefix . 'extensions';
+                            $dir = self::remotedir($url);
+							
+                            foreach ($dir as $filename) {
+                                $file = DIR . DS . 'hashes'.DS.$prefix.'extensions'.DS.$filename;
+                                if (is_file($file) && is_readable($file)) { // std extension hash : remove it
+                                    unlink($file);
+                                }
+                            }
                         }
                     }
 
