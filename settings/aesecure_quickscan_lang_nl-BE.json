@@ -53,7 +53,7 @@
     "ISAVIRUS":"Dit bestand is een virus",
     "JS_CONFIRMKILL": "Weet je zeker dat je het bestand %s wil verwijderen?",
     "JS_FILENOTFOUND": "<div class=\"alert alert-danger\"><strong>Bestand niet gevonden of status alleen-lezen</strong></div>",
-    "JS_KEEPWHITELIST": "Nadat aeSecure een aantal veilige bestanden heeft gevonden zal er een bestand aesecure_quickscan.whitelist.json op uw site worden geplaatst.\\n\\nWilt u dit bestand behouden zodat de volgende keer bij een aeSecure Quickscan deze bestanden niet meer in de lijst komen?\\n\\nKlik op OK om het bestand te behouden.",
+    "JS_KEEPWHITELIST": "Nadat aeSecure een aantal veilige bestanden heeft gevonden zal er een bestand aesecure_quickscan.whitelist.json op uw site worden geplaatst. Als u hash-bestanden voor uw extensies hebt gemaakt, staan ​​deze in de map hashes/<CMS>extensions. \\nWilt u dit bestand en deze map behouden zodat de volgende keer bij een aeSecure Quickscan deze bestanden niet meer in de lijst komen?\\nKlik op OK om ze te behouden.",
     "JS_UNLINKERROR": "<div class=\"alert alert-success\"><strong>Het bestand kon niet worden verwijderd</strong>Onbekende fout</div>",
     "JS_UNLINKSUCCESS": "<div class=\"alert alert-success\"><strong>Het bestand is verwijderd</strong></div>",
     "KILL_FILE_HINT": "<span class='text-danger' style='font-size:1.2em;'><strong>Wis bestand</strong><br/>Na bevestiging, wordt het bestand definitief verwijderd van de server.<hr/>Dit houdt een rsisico in en kan problemen veroorzaken met uw site.</span>",

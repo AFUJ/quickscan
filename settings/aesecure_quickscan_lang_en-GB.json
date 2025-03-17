@@ -53,7 +53,7 @@
     "ISAVIRUS":"This file is a virus",
     "JS_CONFIRMKILL": "Are you sure you want to remove the file %s ?",
     "JS_FILENOTFOUND": "<div class=\"alert alert-danger\"><strong>File not found or read-only status</strong></div>",
-    "JS_KEEPWHITELIST": "After identifying somes files as safe, aeSecure has created a file called aesecure_quickscan.whitelist.json on your site.\\n\\nWould you like to keep this file so that the next time you'll use aeSecure QuickScan again, these files won't be listed again?\\n\\nClick on OK to keep the file.",
+    "JS_KEEPWHITELIST": "After identifying somes files as safe, aeSecure has created a file called aesecure_quickscan.whitelist.json on your site. If you have created hashes for your own extensions, they are in hashes/<CMS>extensions directory.\\nWould you like to keep this file and directory so that the next time you'll use aeSecure QuickScan, these files won't be listed again?\\n\\nClick on OK to keep them.",
     "JS_UNLINKERROR": "<div class=\"alert alert-success\"><strong>It was impossible to remove the file</strong> Unknown error</div>",
     "JS_UNLINKSUCCESS": "<div class=\"alert alert-success\"><strong>The file has been removed</strong></div>",
     "KILL_FILE_HINT": "<span class='text-danger' style='font-size:1.2em;'><strong>Delete file</strong><br/>After your confirmation, the file will be permanently deleted from the server.<hr/>This operation is risky and could lead to problems in your site.</span>",
