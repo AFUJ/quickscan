@@ -3,7 +3,7 @@
 /**
  * Name          : aeSecure QuickScan - Free scanner
  * Description   : Scan your website for possible hacks, viruses, malwares, SEO black hat and exploits
- * Version       : 2.1.0
+ * Version       : 2.1.2
  * Date          : November 2018
  * Last update   : March 2025
  * Author        : AVONTURE Christophe (christophe@avonture.be)
@@ -27,6 +27,9 @@
  * Changelog:
  *
  =======
+ * version 2.1.2
+ *	+ Extensions directory list using github API
+ *
  * version 2.1.1
  *	+ Extensions hashes load if missing
  *  + clean up other.json file
@@ -131,7 +134,7 @@ define('DEMO', false);
 
 define('DEBUG', false);              // Enable debugging (Note: there is no progress bar in debug mode)
 define('FULLDEBUG', false);          // Output a lot of information
-define('VERSION', '2.1.1');          // Version number of this script
+define('VERSION', '2.1.2');          // Version number of this script
 define('EXPERT', false);             // Display Kill file button and allow to specify a folder
 define('MAX_SIZE', 1 * 1024 * 1024); // One megabyte: skip files when filesize is greater than this max size.
 define('MAXFILESBYCYCLE', 500);      // Number of files to process by cycle, reduce this figure if you receive HTTP error 504 - Gateway timeout
@@ -143,6 +146,7 @@ define('CURL_TIMEOUT', 2);           // Max number of seconds before the timeout
 
 // Download URL for the file with CMS hashes
 define('DOWNLOAD_URL', 'https://raw.githubusercontent.com/AFUJ/quickscan/master/');
+define('DOWNLOAD_URL_DIR', 'https://api.github.com/repos/AFUJ/quickscan/contents/');
 define('MD5', '');
 define('DIRNOTFOUND', 'Directory not found');
 
@@ -280,7 +284,7 @@ class Download
     }
 
     /**
-     * Download the application package ZIP file.
+     * Download a github file.
      *
      * @param type $url
      * @param type $file
@@ -388,6 +392,57 @@ class Download
 
         return $wError;
     }
+    /**
+     * Get one github directory content.
+     *
+     * @param type $url
+     *
+     * @return string
+     */
+    public function downloadGetDir()
+    {
+        $wError = 0;
+
+        // Try to use CURL, if installed
+        if (self::iscURLEnabled()) {
+            // Ok, try to download the file
+            $ch = curl_init(static::$sSourceURL);
+            if ($ch) {
+                // Start the download process
+                @set_time_limit(0);
+                // Download
+                curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 6.1; WOW64) ' .
+                    'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.153 ' .
+                    'Safari/537.36 FirePHP/4Chrome');
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 1000);
+                // Output curl debugging messages into a text file
+                if (static::$bDebug) {
+                    // output debugging info in a txt file
+                    curl_setopt($ch, CURLOPT_VERBOSE, true);
+                    $fdebug = fopen(static::$sDebugFileName, 'w');
+                    curl_setopt($ch, CURLOPT_STDERR, $fdebug);
+                }
+                // Add CURLOPT_SSL if the protocol is https
+                if ('https' == substr((string) static::$sSourceURL, 0, 5)) {
+                    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+                    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
+                }
+                curl_setopt($ch, CURLOPT_HEADER, false);
+                curl_setopt($ch, CURLOPT_FOLLOWLOCATION, false);
+                curl_setopt($ch, CURLOPT_MAXREDIRS, 3);
+                $rc = curl_exec($ch);
+                curl_close($ch);
+                if (!$rc) {
+                    $wError = self::ERROR_CURL;
+                } else {
+                    return $rc;
+                }
+            }
+        }
+
+        return $wError;
+    }
 
     /**
      * Return a text for the encountered error.
@@ -464,6 +519,44 @@ class aeSecureDownload
             if (0 !== $wReturn) {
                 $sErrorMsg = $aeDownload->getErrorMessage($wReturn);
             }
+        } catch (Exception $e) {
+            $wReturn   = 1001;
+            $sErrorMsg = $e->getMessage();
+        }
+
+        unset($aeDownload);
+    }
+    /**
+     * Download a directory from GitHub like "hashes/J!extensions", ...
+     * See the DOWNLOAD_URL_DIR constant for the URL.
+     *
+     * @param [type] $dir
+     * @param mixed $uri
+     *
+     * @return void
+     */
+    public static function getDir($dir)
+    {
+        try {
+            // Try to download
+            $aeDownload = new Download('Quickscan');
+            $aeDownload->debugMode(DEBUG);
+
+            // Be sure to have only one "/" and not two
+
+            $url = rtrim(DOWNLOAD_URL_DIR, '/') . '/' . $dir.'?ref=master';
+
+            $aeDownload->setURL($url);
+            $wReturn = $aeDownload->downloadGetDir();
+
+            if (is_int($wReturn)) { // error
+                $sErrorMsg = $aeDownload->getErrorMessage($wReturn);
+            } else { // contains a directory
+                $json_array = json_decode($wReturn);
+                unset($aeDownload);
+                return  $json_array ;
+            }
+
         } catch (Exception $e) {
             $wReturn   = 1001;
             $sErrorMsg = $e->getMessage();
@@ -2363,9 +2456,9 @@ class aeSecureScan
                         }
                         if ($bKeepWhiteList) { // just keep customer extensions hashes
                             // get std extensions list
-                            $url = 'https://github.com/AFUJ/quickscan/tree/master/hashes/'. $prefix . 'extensions';
+                            $url = 'hashes/'. $prefix . 'extensions';
                             $dir = self::remotedir($url);
-							
+
                             foreach ($dir as $filename) {
                                 $file = DIR . DS . 'hashes'.DS.$prefix.'extensions'.DS.$filename;
                                 if (is_file($file) && is_readable($file)) { // std extension hash : remove it
@@ -2541,13 +2634,16 @@ class aeSecureScan
     }
     public function remotedir($dir)
     {
-        $html = file_get_contents($dir);
+        $githubdir = aeSecureDownload::getDir($dir);
+
+        if (!is_array($githubdir)) {
+            return [];
+        }
         $ret = [];
-        if (preg_match_all('/<a title="(.*?)"/i', $html, $matches, PREG_SET_ORDER)) {
-            foreach ($matches as $n) {
-                $str = $n[1];
-                if (!in_array($str, $ret)) {
-                    $ret[] = $str;
+        foreach ($githubdir as $obj) {
+            if (isset($obj->name)) {
+                if (!in_array($obj->name, $ret)) {
+                    $ret[] = $obj->name;
                 }
             }
         }
@@ -2577,8 +2673,8 @@ class aeSecureScan
         }
         $files = array_diff(scandir($hashes), array('..', '.')); // current list
         // get extensions directory content from github
-        $url = 'https://github.com/AFUJ/quickscan/tree/master/hashes/'. $prefix . 'extensions';
-        $dir = self::remotedir($url);
+        $dir = 'hashes/'. $prefix . 'extensions';
+        $dir = self::remotedir($dir);
         foreach ($dir as $file) {
             if (in_array($file, $files)) {
                 continue;// already loaded : next please
