@@ -156,7 +156,7 @@ Après quelques secondes, vous obtiendrez de nouveaux fichiers JSON (un par vers
 
 Pour réduire le nombre de "faux positifs", vous pouvez aussi créer des fichiers de hashage pour les extensions que vous utilisez sur votre site. 
 
-Pour Joomla, il suffit de copier le/les fichiers d'installation de votre extension dans le répertoire .hashes/J!extensions et de lancer make_hashes.php comme précédemment.
+Pour Joomla, il suffit de copier le/les fichiers d'installation de votre extension au format zip dans le répertoire .hashes/J!extensions et de lancer make_hashes.php comme précédemment.
 
 Si vous avez les permissions d'écriture sur le dépôt [https://github.com/AFUJ/quickscan](https://github.com/AFUJ/quickscan), poussez simplement les nouvelles signatures pour les rendre publiquement disponibles.
 
