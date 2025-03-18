@@ -148,7 +148,7 @@ Il est important que le nom de fichier de l'archive soit mis à jour et soit sim
 
 Cela fait, je peux maintenant démarrer mon navigateur et le script `make_hashes.php`.
 
-**Remarque** : à partir de la **version 2.1.0**, make_hashes.php décompresse le fichier d'installation, crée le fichier json associé et supprime le fichier zip ainsi que les répertoires créés pour générer le fichier json.
+**Remarque** : à partir de la **version 2.1.0**, make_hashes.php décompresse le/les fichier\(s\) d'installation, crée le\(s\) fichier\(s\) json associé\(s\) et supprime le\(s\) fichier\(s\) zip ainsi que les répertoires créés pendant ce traitement.
 
 Si vous êtes un utilisateur de Docker, exécutez simplement `docker run -d -p 8080:80 -u $(id -u):$(id -g) -v "$PWD":/var/www/html php:8.2-apache` dans le dossier où vous avez cloné ce dépôt, puis démarrez votre navigateur et ouvrez `http://localhost:8080/make_hash.php`, attendez quelques secondes et c'est terminé.
 
@@ -308,7 +308,7 @@ It's important that the archive filename is updated and be, just, the version. F
 
 This done, now I can start my browser and the `make_hashes.php` script.
 
-**Note** : Since 2.1.0 version, make_hashes.php unzips archive files, creates hashes json file. it then removes your archive file and folders that have been created.
+**Note** : Since 2.1.0 version, make_hashes.php unzips archive files, creates hashes json files. it then removes your archive files and folders that have been created during this process.
 
 If you're a Docker user, just run `docker run -d -p 8080:80 -u $(id -u):$(id -g) -v "$PWD":/var/www/html php:8.2-apache` in the folder where you've cloned this repository then start your browser and open `http://localhost:8080/make_hash.php`, wait a few seconds and you're done.
 
