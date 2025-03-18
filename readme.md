@@ -63,6 +63,8 @@ aeSecure QuickScan téléchargera automatiquement trois ou quatre fichiers :
 
 Si votre site web utilise un CMS supporté comme par exemple `Joomla` et une version supportée, un fichier nommé `aesecure_quickscan_XXXXXX.json` sera téléchargé (où `XXXXXX` est par exemple `J!3.9.0`).
 
+Depuis la **version 2.1.0**, un répertoire hashes/<CMS>extensions a été ajouté. Dans le cas de Joomla, le répertoire est J!extensions, pour Wordpress, il s'agit de WPextensions. Ces répertoires contiennent les fichiers de hashage des principales extensions Joomla!/Wordpress. Cela permet de **réduire le nombre de "faux positifs"**. Vous pouvez y ajouter vos propres extensions : voir la section **Créer les hashages**. 
+
 Si quelque chose ne va pas avec le téléchargement automatique (pas de support `CURL` par exemple), vous serez invité à télécharger ces fichiers manuellement.
 
 ![Téléchargements automatiques](images/files.png)
@@ -156,7 +158,7 @@ Après quelques secondes, vous obtiendrez de nouveaux fichiers JSON (un par vers
 
 Pour réduire le nombre de "faux positifs", vous pouvez aussi créer des fichiers de hashage pour les extensions que vous utilisez sur votre site. 
 
-Pour Joomla, il suffit de copier le/les fichiers d'installation de votre extension au format zip dans le répertoire .hashes/J!extensions et de lancer make_hashes.php comme précédemment.
+Pour Joomla, il suffit de copier le/les fichiers d'installation de votre extension au format zip (**à partir de sources fiables, naturellement**) dans le répertoire .hashes/J!extensions et de lancer make_hashes.php comme précédemment.
 
 Si vous avez les permissions d'écriture sur le dépôt [https://github.com/AFUJ/quickscan](https://github.com/AFUJ/quickscan), poussez simplement les nouvelles signatures pour les rendre publiquement disponibles.
 
