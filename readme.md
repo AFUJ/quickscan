@@ -63,7 +63,7 @@ aeSecure QuickScan téléchargera automatiquement trois ou quatre fichiers :
 
 Si votre site web utilise un CMS supporté comme par exemple `Joomla` et une version supportée, un fichier nommé `aesecure_quickscan_XXXXXX.json` sera téléchargé (où `XXXXXX` est par exemple `J!3.9.0`).
 
-Depuis la **version 2.1.0**, un répertoire hashes/<CMS>extensions a été ajouté. Dans le cas de Joomla, le répertoire est J!extensions, pour Wordpress, il s'agit de WPextensions. Ces répertoires contiennent les fichiers de hashage des principales extensions Joomla!/Wordpress. Cela permet de **réduire le nombre de "faux positifs"**. Vous pouvez y ajouter vos propres extensions : voir la section **Créer les hashages**. 
+Depuis la **version 2.1.0**, un répertoire hashes/\<CMS\>extensions a été ajouté. Dans le cas de Joomla, le répertoire est J!extensions, pour Wordpress, il s'agit de WPextensions. Ces répertoires contiennent les fichiers de hashage des principales extensions Joomla!/Wordpress. Cela permet de **réduire le nombre de "faux positifs"**. Vous pouvez y ajouter vos propres extensions : voir la section **Créer les hashages**. 
 
 Si quelque chose ne va pas avec le téléchargement automatique (pas de support `CURL` par exemple), vous serez invité à télécharger ces fichiers manuellement.
 
@@ -172,7 +172,7 @@ Si vous avez les permissions d'écriture sur le dépôt [https://github.com/AFUJ
   
 > PHP script to install on your site (preferably in localhost for better performance) to scan files for viruses.
 
-**aeSecure QuickScan already RECOGNISE MORE THAN 47.750 VIRUSES (September 2023) and use whitelist hashes to avoid to scan [WordPress](https://github.com/cavo789/aesecure_quickscan/tree/master/hashes/wordpress) and [Joomla](https://github.com/cavo789/aesecure_quickscan/tree/master/hashes/joomla) native files.**
+**aeSecure QuickScan already RECOGNISE MORE THAN 47.750 VIRUSES (September 2023) and use whitelist hashes to avoid to scan [WordPress](https://github.com/afuj/quickscan/tree/master/hashes/wordpress) and [Joomla](https://github.com/afuj/quickscan/tree/master/hashes/joomla) native files.**
 
 > ℹ️ **INSTALLATION**
 > You just need to get a copy of `aesecure_quickscan.php` and nothing else; please read [installation guide](#install).
@@ -222,6 +222,8 @@ aeSecure QuickScan will automatically download three or four files:
 - `aesecure_quickscan_supported_cms.json` contains a list of CMS software recognised by the scanner.
 
 If your website is running a supported CMS like f.i. `Joomla` and a supported version, a file called `aesecure_quickscan_XXXXXX.json` will be downloaded (where `XXXXXX` is f.i. `J!3.9.0`).
+
+Since **2.1.0 version**, hashes/\<CMS\>extensions directory has been created. In case of Joomla, it is named hashes/J!extensions when, for Wordpress, it will be hashes/WPextensions. 
 
 If something goes wrong with the automatic download (no `CURL` support f.i.), you'll be prompted to download these files manually.
 
