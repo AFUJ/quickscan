@@ -63,7 +63,7 @@ aeSecure QuickScan téléchargera automatiquement trois ou quatre fichiers :
 
 Si votre site web utilise un CMS supporté comme par exemple `Joomla` et une version supportée, un fichier nommé `aesecure_quickscan_XXXXXX.json` sera téléchargé (où `XXXXXX` est par exemple `J!3.9.0`).
 
-Depuis la **version 2.1.0**, un répertoire hashes/\<CMS\>extensions a été ajouté. Dans le cas de Joomla, le répertoire est J!extensions, pour Wordpress, il s'agit de WPextensions. Ces répertoires contiennent les fichiers de hashage des principales extensions Joomla!/Wordpress. Cela permet de **réduire le nombre de "faux positifs"**. Vous pouvez y ajouter vos propres extensions : voir la section **Créer les hashages**. 
+Depuis la **version 2.1.0**, un répertoire hashes/\<CMS\>extensions a été ajouté. Dans le cas de Joomla!, le répertoire est J!extensions, pour Wordpress, il s'agit de WPextensions. Ces répertoires contiennent les fichiers de hashage des principales extensions Joomla!/Wordpress. Cela permet de **réduire le nombre de "faux positifs"**. Vous pouvez y ajouter vos propres extensions : voir la section **Créer les hashages**. 
 
 Si quelque chose ne va pas avec le téléchargement automatique (pas de support `CURL` par exemple), vous serez invité à télécharger ces fichiers manuellement.
 
@@ -158,7 +158,7 @@ Après quelques secondes, vous obtiendrez de nouveaux fichiers JSON (un par vers
 
 Pour réduire le nombre de "faux positifs", vous pouvez aussi créer des fichiers de hashage pour les extensions que vous utilisez sur votre site. 
 
-Pour Joomla, il suffit de copier le/les fichiers d'installation de votre extension au format zip (**à partir de sources fiables, naturellement**) dans le répertoire .hashes/J!extensions et de lancer make_hashes.php comme précédemment.
+Pour Joomla, il suffit de copier le/les fichiers d'installation de votre extension au format zip (**à partir de sources fiables, naturellement**) dans le répertoire .hashes/J!extensions ou WPextensions, puis de lancer make_hashes.php comme précédemment.
 
 Si vous avez les permissions d'écriture sur le dépôt [https://github.com/AFUJ/quickscan](https://github.com/AFUJ/quickscan), poussez simplement les nouvelles signatures pour les rendre publiquement disponibles.
 
@@ -223,7 +223,7 @@ aeSecure QuickScan will automatically download three or four files:
 
 If your website is running a supported CMS like f.i. `Joomla` and a supported version, a file called `aesecure_quickscan_XXXXXX.json` will be downloaded (where `XXXXXX` is f.i. `J!3.9.0`).
 
-Since **2.1.0 version**, hashes/\<CMS\>extensions directory has been created. In case of Joomla, it is named hashes/J!extensions when, for Wordpress, it will be hashes/WPextensions. 
+Since **2.1.0 version**, hashes/\<CMS\>extensions directory has been created. In case of Joomla!, it is named hashes/J!extensions when, for Wordpress, it will be hashes/WPextensions. It contains some popular extensions hashes files. This will reduce "false positive" detection. To create your own extensions hashes files, check **Creating hashes** section.
 
 If something goes wrong with the automatic download (no `CURL` support f.i.), you'll be prompted to download these files manually.
 
@@ -306,33 +306,19 @@ If you need more than one version, just download all the required versions and s
 
 It's important that the archive filename is updated and be, just, the version. For instance, rename `Joomla_5.0.0-Stable-Full_Package.zip` to `5.0.0.zip`.
 
-In the example below, I've downloaded Joomla 4.4.0 till 5.1.0. Zip files are in my `./hashes/joomla` folder and I uncompress them by running the command below in my Linux console:
-
-```bash
-unzip 4.4.0.zip -d ./4.4.0 && rm -f 4.4.0.zip
-unzip 4.4.1.zip -d ./4.4.1 && rm -f 4.4.1.zip
-unzip 4.4.2.zip -d ./4.4.2 && rm -f 4.4.2.zip
-unzip 4.4.3.zip -d ./4.4.3 && rm -f 4.4.3.zip
-unzip 5.0.0.zip -d ./5.0.0 && rm -f 5.0.0.zip
-unzip 5.0.1.zip -d ./5.0.1 && rm -f 5.0.1.zip
-unzip 5.0.2.zip -d ./5.0.2 && rm -f 5.0.2.zip
-unzip 5.0.3.zip -d ./5.0.3 && rm -f 5.0.3.zip
-unzip 5.1.0.zip -d ./5.1.0 && rm -f 5.1.0.zip
-```
-
-Since I'm lazy, here is the Linux command to start for getting the list here above: 
-
-```bash
-for f in *.zip ; do var=`find "$f"`; echo "unzip $f -d ${f%.*} && rm -f $f"; done
-```
-
 This done, now I can start my browser and the `make_hashes.php` script.
+
+**Note** : Since 2.1.0 version, make_hashes.php unzips archive files, creates hashes json file. it then removes your archive file and folders that have been created.
 
 If you're a Docker user, just run `docker run -d -p 8080:80 -u $(id -u):$(id -g) -v "$PWD":/var/www/html php:8.2-apache` in the folder where you've cloned this repository then start your browser and open `http://localhost:8080/make_hash.php`, wait a few seconds and you're done.
 
 The script will immediately start the creation of the hashes; there is nothing to do; just wait.
 
 After a few seconds, you'll get new JSON files (one by version) in `./hashes/joomla`. You can now, optionally, remove the subfolders; no more needed.
+
+To reduce "false positive", you may create hashes files from extensions used on your site.
+
+For Joomla!, copy your extensions archive file **from a trusty source** to hashes/j!extensions and start make_hashes.php.
 
 If you've written permissions to the [https://github.com/AFUJ/quickscan](https://github.com/AFUJ/quickscan) repository, just push new signatures to make them publicly available.
 
