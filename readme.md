@@ -113,8 +113,9 @@ Comme vous pouvez le voir ci-dessous, dans une installation fraîche de Joomla 3
 Les fichiers restants seront analysés et si quelque chose est trouvé sur la base de
 
 - nos modèles (stockés dans `aesecure_quickscan_pattern.json`),
-- notre hachage de liste noire (`aesecure_quickscan_blacklist.json`) ou
-- notre hachage modifié (`aesecure_quickscan_edited.json`)
+- notre hachage de liste noire (`aesecure_quickscan_blacklist.json`), 
+- notre hachage modifié (`aesecure_quickscan_edited.json`),
+- nos hashages des extensions communes (répertoire hashes\J!extensions ou hashes\WPextensions).
 
 ![Virus du mien](images/virus_of_mine.png)
 
@@ -273,8 +274,9 @@ As you can see here below, on a fresh installation of Joomla 3.9.0, the number o
 Remaining files will be scanned and if something is found based on
 
 - our patterns (stored in `aesecure_quickscan_pattern.json`),
-- our blacklist hash (`aesecure_quickscan_blacklist.json`) or
-- our edited hash (`aesecure_quickscan_edited.json`)
+- our blacklist hash (`aesecure_quickscan_blacklist.json`), 
+- our edited hash (`aesecure_quickscan_edited.json`),
+- our common extensions hashes (hashes/J!extensions or hashes/WPextensions)
 
 ![Virus of mine](images/virus_of_mine.png)
 
