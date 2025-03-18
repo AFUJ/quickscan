@@ -98,7 +98,7 @@ Vous devez cliquer sur ce bouton en premier.
 
 Avant de commencer l'analyse, QuickScan doit savoir combien de fichiers il doit analyser. L'action `Obtention de la liste des fichiers` récupérera la liste de tous les fichiers de votre site et tous les fichiers de la liste blanche seront ignorés. Un fichier de la liste blanche est un fichier que QuickScan sait être propre. Comment ? Parce que le hachage md5 du fichier est mentionné dans un fichier de liste blanche comme le `aesecure_quickscan_J!5.2.5.json` (ou tout autre fichier de liste blanche).
 
-En d'autres termes : `Obtention de la liste des fichiers` ne récupérera que les fichiers qui doivent être analysés. Dans une installation fraîche de Joomla ou WordPress, vous aurez très peu de fichiers à analyser puisque les fichiers natifs, de base, sont dans la liste blanche. Explication : J'ai généré des hachages pour de nombreuses versions (voir https://github.com/cavo789/aesecure_quickscan/tree/master/hashes/joomla et https://github.com/cavo789/aesecure_quickscan/tree/master/hashes/wordpress). Dès que QuickScan peut récupérer un fichier de hachage pour la version de Joomla/Wordpress que vous utilisez, un hachage sera calculé pour chaque fichier de votre site et si ce hachage est reconnu, cela signifie que votre fichier est sain, c'est-à-dire que son contenu est exactement celui présent dans une installation fraîche de Joomla/Wordpress et ne contient donc aucun virus. Dès qu'un fichier de base a été modifié, même avec un simple caractère d'espace, le hachage sera différent et donc non récupéré dans la liste. En conséquence, le fichier sera analysé même s'il fait partie des fichiers "de base" du CMS. Seuls les fichiers non modifiés seront considérés comme sains et non analysés.
+En d'autres termes : `Obtention de la liste des fichiers` ne récupérera que les fichiers qui doivent être analysés. Dans une installation fraîche de Joomla ou WordPress, vous aurez très peu de fichiers à analyser puisque les fichiers natifs, de base, sont dans la liste blanche. Explication : J'ai généré des hachages pour de nombreuses versions (voir https://github.com/afuj/quickscan/tree/master/hashes/joomla et https://github.com/afuj/quickscan/tree/master/hashes/wordpress). Dès que QuickScan peut récupérer un fichier de hachage pour la version de Joomla/Wordpress que vous utilisez, un hachage sera calculé pour chaque fichier de votre site et si ce hachage est reconnu, cela signifie que votre fichier est sain, c'est-à-dire que son contenu est exactement celui présent dans une installation fraîche de Joomla/Wordpress et ne contient donc aucun virus. Dès qu'un fichier de base a été modifié, même avec un simple caractère d'espace, le hachage sera différent et donc non récupéré dans la liste. En conséquence, le fichier sera analysé même s'il fait partie des fichiers "de base" du CMS. Seuls les fichiers non modifiés seront considérés comme sains et non analysés.
 
 Les fichiers **non modifiés** sont dans la liste blanche (s'ils n'ont pas été modifiés, bien sûr).
 
@@ -144,33 +144,19 @@ Si vous avez besoin de plus d'une version, téléchargez simplement toutes les v
 
 Il est important que le nom de fichier de l'archive soit mis à jour et soit simplement la version. Par exemple, renommez `Joomla_5.0.0-Stable-Full_Package.zip` en `5.0.0.zip`.
 
-Dans l'exemple ci-dessous, j'ai téléchargé Joomla 4.4.0 jusqu'à 5.1.0. Les fichiers zip sont dans mon dossier `./hashes/joomla` et je les décompresse en exécutant la commande suivante dans ma console Linux :
-
-```bash
-unzip 4.4.0.zip -d ./4.4.0 && rm -f 4.4.0.zip
-unzip 4.4.1.zip -d ./4.4.1 && rm -f 4.4.1.zip
-unzip 4.4.2.zip -d ./4.4.2 && rm -f 4.4.2.zip
-unzip 4.4.3.zip -d ./4.4.3 && rm -f 4.4.3.zip
-unzip 5.0.0.zip -d ./5.0.0 && rm -f 5.0.0.zip
-unzip 5.0.1.zip -d ./5.0.1 && rm -f 5.0.1.zip
-unzip 5.0.2.zip -d ./5.0.2 && rm -f 5.0.2.zip
-unzip 5.0.3.zip -d ./5.0.3 && rm -f 5.0.3.zip
-unzip 5.1.0.zip -d ./5.1.0 && rm -f 5.1.0.zip
-```
-
-Puisque je suis paresseux, voici la commande Linux à exécuter pour obtenir la liste ci-dessus :
-
-```bash
-for f in *.zip ; do var=`find "$f"`; echo "unzip $f -d ${f%.*} && rm -f $f"; done
-```
-
 Cela fait, je peux maintenant démarrer mon navigateur et le script `make_hashes.php`.
+
+**Remarque** : à partir de la **version 2.1.0**, make_hashes.php décompresse le fichier d'installation, crée le fichier json associé et supprime le fichier zip ainsi que les répertoires créés pour générer le fichier json.
 
 Si vous êtes un utilisateur de Docker, exécutez simplement `docker run -d -p 8080:80 -u $(id -u):$(id -g) -v "$PWD":/var/www/html php:8.2-apache` dans le dossier où vous avez cloné ce dépôt, puis démarrez votre navigateur et ouvrez `http://localhost:8080/make_hash.php`, attendez quelques secondes et c'est terminé.
 
 Le script commencera immédiatement la création des hachages ; il n'y a rien à faire ; il suffit d'attendre.
 
-Après quelques secondes, vous obtiendrez de nouveaux fichiers JSON (un par version) dans `./hashes/joomla`. Vous pouvez maintenant, éventuellement, supprimer les sous-dossiers ; ils ne sont plus nécessaires.
+Après quelques secondes, vous obtiendrez de nouveaux fichiers JSON (un par version) dans `./hashes/joomla`. 
+
+Pour réduire le nombre de "faux positifs", vous pouvez aussi créer des fichiers de hashage pour les extensions que vous utilisez sur votre site. 
+
+Pour Joomla, il suffit de copier le/les fichiers d'installation de votre extension dans le répertoire .hashes/J!extensions et de lancer make_hashes.php comme précédemment.
 
 Si vous avez les permissions d'écriture sur le dépôt [https://github.com/AFUJ/quickscan](https://github.com/AFUJ/quickscan), poussez simplement les nouvelles signatures pour les rendre publiquement disponibles.
 
