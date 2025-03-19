@@ -3,7 +3,7 @@
 /**
  * Name          : aeSecure QuickScan - Free scanner
  * Description   : Scan your website for possible hacks, viruses, malwares, SEO black hat and exploits
- * Version       : 2.1.2
+ * Version       : 2.1.3
  * Date          : November 2018
  * Last update   : March 2025
  * Author        : AVONTURE Christophe (christophe@avonture.be)
@@ -27,6 +27,10 @@
  * Changelog:
  *
  =======
+ * version 2.1.3
+ *	+ Add some Wordpress extensions
+ *	+ make_hashes : display todo list + go button
+ *
  * version 2.1.2
  *	+ Extensions directory list using github API
  *
@@ -134,7 +138,7 @@ define('DEMO', false);
 
 define('DEBUG', false);              // Enable debugging (Note: there is no progress bar in debug mode)
 define('FULLDEBUG', false);          // Output a lot of information
-define('VERSION', '2.1.2');          // Version number of this script
+define('VERSION', '2.1.3');          // Version number of this script
 define('EXPERT', false);             // Display Kill file button and allow to specify a folder
 define('MAX_SIZE', 1 * 1024 * 1024); // One megabyte: skip files when filesize is greater than this max size.
 define('MAXFILESBYCYCLE', 500);      // Number of files to process by cycle, reduce this figure if you receive HTTP error 504 - Gateway timeout
