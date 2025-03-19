@@ -280,6 +280,11 @@ function toDo()
         $Folder = key($arr);      // For instance "joomla"; name of the CMS; name of the subfolder
         $prefix = $arr[$Folder];  // For instance "J!"; prefix to use for naming files (f.i. "J!3.4.1" for the Joomla file for version 3.4.1)
 
+        $hashFolder = __DIR__ . DS . 'hashes';
+        if (!is_dir($hashFolder)) {
+            @mkdir($hashFolder);
+        }
+
         // Check if we have a folder called __DIR__/hashes/joomla (or wordpress or ...)
         $hashFolder = __DIR__ . DS . 'hashes' . DS . $Folder;
 
