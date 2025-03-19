@@ -1,26 +1,7 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html  xmlns="http://www.w3.org/1999/xhtml" xml:lang="fr">
-  <head>
-      <meta charset="utf-8" />
-      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-      <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-      <meta name="viewport" content="width=device-width, initial-scale=1" />
-      <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet" />
-      <title>aeSecure - Make hash</title>
-  </head>
-  <body class="container">
-    <h1>aeSecure QuickScan - Make hash</h1>
-    <p>To add a new version of a CMS or an extension, you need to</p>
-    <ol>
-        <li>create the folder corresponding to this CMS (/joomla, /wordpress, /J!extensions, /WPextensions)</li>
-        <li>copy zip files in the directory.
-        <li>note : in case of Joomla or WP, rename zip file so it just contains its version number (e.g. /joomla/5.2.0.zip)</li>
-    </ol>
-    <p>The JSON files will be generated automatically.</p>
-    <hr/>
 <?php
 
 define('DS', DIRECTORY_SEPARATOR);
+define('FILE', str_replace('/', DIRECTORY_SEPARATOR, basename((string) $_SERVER['SCRIPT_FILENAME'])));
 
 // No max execution time
 @ini_set('max_execution_time', '0');
@@ -207,10 +188,10 @@ function makeJSON($folder, $filename)
             if ($file == $folder . DS . 'readme.txt') {
                 continue;
             }
-			// ignore installation directory
-			if (str_starts_with($file,$folder . DS .'installation')) {
-				continue;
-			}
+            // ignore installation directory
+            if (str_starts_with($file, $folder . DS .'installation')) {
+                continue;
+            }
             $relativefName = str_replace($folder, '', $file);
 
             // If the filename is called aesecure_quickscan.whitelist.json or
@@ -285,75 +266,178 @@ function makeJSON($folder, $filename)
         rrmdir($folder = $folder, $killroot = false, $arrIgnoreFiles = ['readme.txt']);
     }
 }
+function toDo()
+{
+    $arrFolder = [
+        ['joomla'      => 'J!'],
+        ['wordpress'   => 'WP'],
+        ['J!extensions'   => ''],
+        ['WPextensions'   => '']
+    ];
+    $out = '';
 
-$arrFolder = [
-    ['joomla'      => 'J!'],
-    ['wordpress'   => 'WP'],
-    ['J!extensions'   => ''],
-    ['WPextensions'   => '']
-];
+    foreach ($arrFolder as $arr) {
+        $Folder = key($arr);      // For instance "joomla"; name of the CMS; name of the subfolder
+        $prefix = $arr[$Folder];  // For instance "J!"; prefix to use for naming files (f.i. "J!3.4.1" for the Joomla file for version 3.4.1)
 
-$output = '';
+        // Check if we have a folder called __DIR__/hashes/joomla (or wordpress or ...)
+        $hashFolder = __DIR__ . DS . 'hashes' . DS . $Folder;
 
-foreach ($arrFolder as $arr) {
-    $Folder = key($arr);      // For instance "joomla"; name of the CMS; name of the subfolder
-    $prefix = $arr[$Folder];  // For instance "J!"; prefix to use for naming files (f.i. "J!3.4.1" for the Joomla file for version 3.4.1)
-
-    // Check if we have a folder called __DIR__/hashes/joomla (or wordpress or ...)
-    $hashFolder = __DIR__ . DS . 'hashes' . DS . $Folder;
-
-    if (!is_dir($hashFolder)) {
-        @mkdir($hashFolder);
-    }
-
-    if (is_dir($hashFolder)) {
-
-        recurceZip($hashFolder); // unzip all zip files
-
-        if (!in_array($Folder, ['blacklist', 'other'])) {
-            // This is a folder like "Joomla" : one json file by subfolder since a subfolder contain a specific version of that CMS
-            $subfolders = array_filter(glob($hashFolder . DS . '*'), 'is_dir');
-        } else {
-            // Only one single file for everything present in the "other" folder
-            $subfolders = [$Folder];
+        if (!is_dir($hashFolder)) {
+            @mkdir($hashFolder);
         }
 
-        if (count($subfolders) > 0) {
-            $tmp = '';
-
-            foreach ($subfolders as $folder) {
-                // The file with the hashes will be something like hashes/joomla/J!2.5.27.json
-                if (!in_array($Folder, ['blacklist', 'other'])) {
-                    $filename = $hashFolder . DS . $prefix . str_replace($hashFolder . DS, '', $folder) . '.json';
-                } else {
-                    $filename = dirname(dirname($hashFolder)) . DS . $Folder . '.json';
-                    $folder  = $hashFolder;
-                }
-
-                if ((!file_exists($filename)) || (in_array($Folder, ['blacklist', 'other']))) {
-                    makeJSON($folder, $filename);
-                    echo '<p class="text-success">'.$filename.' has been created.</p>';
-                } else {
-                    echo '<p class="text-danger">'.$filename.' has been ignored.</p>';
-                }
-                if (is_dir($folder)) { // unzipped folder ?
-                    rrmdir($folder, true, []);
-                }
-            }
-
-            if ('' != $tmp) {
-                echo '<h3>Scan ' . $hashFolder . '</h3>';
-                echo '<ol>' . $tmp . '</ol>';
+        $files = array_diff(scandir($hashFolder), array('..', '.'));
+        foreach ($files as $key => $value) {
+            $file_info = pathinfo($value);
+            if (isset($file_info['extension']) && $file_info['extension'] === 'zip') {
+                $out .= '<p class="text-info">'.$hashFolder.DS.$file_info['filename'].' to be processed.</p>';
             }
         }
-    } else {
-        echo '<p>Folder ' . $hashFolder . ' not found</p>';
     }
+    return $out;
 }
 
-?>
-      <hr/>
-   </body>
+function process()
+{
+    if (!isset($_GET['task'])) {
+        return "";
+    }
 
+    $arrFolder = [
+        ['joomla'      => 'J!'],
+        ['wordpress'   => 'WP'],
+        ['J!extensions'   => ''],
+        ['WPextensions'   => '']
+    ];
+
+    $out = '';
+
+    foreach ($arrFolder as $arr) {
+        $Folder = key($arr);      // For instance "joomla"; name of the CMS; name of the subfolder
+        $prefix = $arr[$Folder];  // For instance "J!"; prefix to use for naming files (f.i. "J!3.4.1" for the Joomla file for version 3.4.1)
+
+        // Check if we have a folder called __DIR__/hashes/joomla (or wordpress or ...)
+        $hashFolder = __DIR__ . DS . 'hashes' . DS . $Folder;
+
+        if (!is_dir($hashFolder)) {
+            @mkdir($hashFolder);
+        }
+
+        if (is_dir($hashFolder)) {
+
+            recurceZip($hashFolder); // unzip all zip files
+
+            if (!in_array($Folder, ['blacklist', 'other'])) {
+                // This is a folder like "Joomla" : one json file by subfolder since a subfolder contain a specific version of that CMS
+                $subfolders = array_filter(glob($hashFolder . DS . '*'), 'is_dir');
+            } else {
+                // Only one single file for everything present in the "other" folder
+                $subfolders = [$Folder];
+            }
+
+            if (count($subfolders) > 0) {
+                $tmp = '';
+
+                foreach ($subfolders as $folder) {
+                    // The file with the hashes will be something like hashes/joomla/J!2.5.27.json
+                    if (!in_array($Folder, ['blacklist', 'other'])) {
+                        $filename = $hashFolder . DS . $prefix . str_replace($hashFolder . DS, '', $folder) . '.json';
+                    } else {
+                        $filename = dirname(dirname($hashFolder)) . DS . $Folder . '.json';
+                        $folder  = $hashFolder;
+                    }
+
+                    if ((!file_exists($filename)) || (in_array($Folder, ['blacklist', 'other']))) {
+                        makeJSON($folder, $filename);
+                        $out .= '<p class="text-success">'.$filename.' has been created.</p>';
+                    } else {
+                        $out .= '<p class="text-danger">'.$filename.' has been ignored.</p>';
+                    }
+                    if (is_dir($folder)) { // unzipped folder ?
+                        rrmdir($folder, true, []);
+                    }
+                }
+
+                if ('' != $tmp) {
+                    $out .= '<h3>Scan ' . $hashFolder . '</h3>';
+                    $out .= '<ol>' . $tmp . '</ol>';
+                }
+            }
+        } else {
+            $out .=  '<p>Folder ' . $hashFolder . ' not found</p>';
+        }
+    }
+    if ($out == "") {
+        $out = '<p>Nothing to do.....</p>';
+    }
+    return $out.'<hr/>';
+}
+$showInfo = process();
+if ($showInfo) {
+    $res = json_encode(['result' => $showInfo]);
+    exit($res);
+}
+$todo = toDo();
+?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html  xmlns="http://www.w3.org/1999/xhtml" xml:lang="fr">
+  <head>
+      <meta charset="utf-8" />
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+      <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+      <meta name="viewport" content="width=device-width, initial-scale=1" />
+      <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet" />
+      <title>aeSecure - Make hash</title>
+  </head>
+  <body class="container">
+    <h1>aeSecure QuickScan - Make hash</h1>
+    <p>To add a new version of a CMS or an extension, you need to</p>
+    <ol>
+        <li>create the folder corresponding to this CMS (hashes/joomla, hashes/wordpress, hashes/J!extensions, hashes/WPextensions)</li>
+        <li>copy zip files in the directory.
+        <li>note : in case of Joomla or WP, rename zip file so it just contains its version number (e.g. hashes/joomla/5.2.0.zip)</li>
+    </ol>
+    <p>The JSON files will be generated automatically.</p>
+    <hr/>
+    <div id="todo"><?php echo $todo;?></div>
+	<button type="button" id="btnSubmit" class="btn btn-warning" 
+			data-toggle="popover" data-placement="bottom" data-html="true"
+            data-content="<strong class='text-danger'>GO</strong>">
+			<span class="glyphicon glyphicon-trash">&nbsp;</span>
+			GO
+			</button>
+      <div id="result"><?php echo $showInfo;?></div>
+   </body>
    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.min.js"></script>
+   <script defer="defer">
+    document.addEventListener('DOMContentLoaded', function() {
+        button = document.getElementById('btnSubmit');
+        button.addEventListener('click',function (e) {
+                document.getElementById("btnSubmit").disabled = true;             
+                e.stopImmediatePropagation();
+                var xhr = new XMLHttpRequest();
+                xhr.responseType = 'text';
+                url = "?task=submit";
+                xhr.open('GET', url);
+                xhr.onload = function() {
+                    if (xhr.readyState === xhr.DONE) {
+                        if (this.status === 200) {
+                            var info = JSON.parse(this.response);
+                            if (info.result) {
+                                result = document.getElementById('result');
+                                result.innerHTML = result.innerHTML + info.result;
+                                todo = document.getElementById('todo');
+                                todo.innerHTML = "";
+                                document.getElementById("btnSubmit").style.display = "none"; 
+                            }
+                        }  else {
+                            ocument.getElementById("btnSubmit").disabled = false;
+                        }
+                    }
+                };
+                xhr.send();
+		    })
+        });
+	</script>
 </html>
