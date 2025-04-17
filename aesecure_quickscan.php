@@ -27,6 +27,14 @@
  * Changelog:
  *
  * =======
+ * version 2.1.6
+ *  + Joomla 5.3.0
+ *  + some WP extensions updates
+ *
+ * version 2.1.5
+ *  + Joomla 5.2.6
+ *  + some WP extensions updates
+ *
  * version 2.1.4
  *	+ other.json and whitelist.json files lost (too small)
  *
@@ -141,7 +149,7 @@ define('DEMO', false);
 
 define('DEBUG', false);              // Enable debugging (Note: there is no progress bar in debug mode)
 define('FULLDEBUG', false);          // Output a lot of information
-define('VERSION', '2.1.4');          // Version number of this script
+define('VERSION', '2.1.6');          // Version number of this script
 define('EXPERT', false);             // Display Kill file button and allow to specify a folder
 define('MAX_SIZE', 1 * 1024 * 1024); // One megabyte: skip files when filesize is greater than this max size.
 define('MAXFILESBYCYCLE', 500);      // Number of files to process by cycle, reduce this figure if you receive HTTP error 504 - Gateway timeout
