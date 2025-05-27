@@ -3,9 +3,9 @@
 /**
  * Name          : aeSecure QuickScan - Free scanner
  * Description   : Scan your website for possible hacks, viruses, malwares, SEO black hat and exploits
- * Version       : 2.1.4
+ * Version       : 2.1.7
  * Date          : November 2018
- * Last update   : March 2025
+ * Last update   : May 2025
  * Author        : AVONTURE Christophe (christophe@avonture.be)
  * Author website: https://www.avonture.be.
  *
@@ -27,6 +27,11 @@
  * Changelog:
  *
  * =======
+ * version 2.1.7
+ *  + Joomla 5.3.1
+ *  + WP 6.8.1
+ *  + some WP extensions updates
+ *
  * version 2.1.6
  *  + Joomla 5.3.0
  *  + some WP extensions updates
