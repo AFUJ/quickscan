@@ -3,7 +3,7 @@
 /**
  * Name          : aeSecure QuickScan - Free scanner
  * Description   : Scan your website for possible hacks, viruses, malwares, SEO black hat and exploits
- * Version       : 2.1.8
+ * Version       : 2.1.9
  * Date          : November 2018
  * Last update   : August 2025
  * Author        : AVONTURE Christophe (christophe@avonture.be)
