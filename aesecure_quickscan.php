@@ -28,6 +28,12 @@
  * Changelog:
  *
  * =======
+ * version 2.2.0 (by ConseilGouz)
+ *  + Joomla 5.4.0
+ *  + Joomla 6.0.0
+ *  + Wordpress 6.8.3
+ *
+ * =======
  * version 2.1.10 (by ConseilGouz)
  *  + Joomla 5.3.4
  *
@@ -169,7 +175,7 @@ define('DEMO', false);
 
 define('DEBUG', false);              // Enable debugging (Note: there is no progress bar in debug mode)
 define('FULLDEBUG', false);          // Output a lot of information
-define('VERSION', '2.1.10');         // Version number of this script
+define('VERSION', '2.2.0');         // Version number of this script
 define('EXPERT', false);             // Display Kill file button and allow to specify a folder
 define('MAX_SIZE', 1 * 1024 * 1024); // One megabyte: skip files when filesize is greater than this max size.
 define('MAXFILESBYCYCLE', 500);      // Number of files to process by cycle, reduce this figure if you receive HTTP error 504 - Gateway timeout
