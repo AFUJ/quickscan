@@ -28,6 +28,12 @@
  * Changelog:
  *
  * =======
+ * version 2.2.3 (by ConseilGouz)
+ *  + PHP 8.5 compatibility : is<cms> must return an array
+ *  + Joomla 6.0.4 / 5.4.4
+ *  + Wordpress 6.9.4
+ *
+ * =======
  * version 2.2.2 (by ConseilGouz)
  *  + Joomla 4.4.13 / 4.4.14
  *  + Joomla 5.4.2 / 5.4.3
@@ -191,7 +197,7 @@ define('DEMO', false);
 
 define('DEBUG', false);              // Enable debugging (Note: there is no progress bar in debug mode)
 define('FULLDEBUG', false);          // Output a lot of information
-define('VERSION', '2.2.2');         // Version number of this script
+define('VERSION', '2.2.3');         // Version number of this script
 define('EXPERT', false);             // Display Kill file button and allow to specify a folder
 define('MAX_SIZE', 1 * 1024 * 1024); // One megabyte: skip files when filesize is greater than this max size.
 define('MAXFILESBYCYCLE', 500);      // Number of files to process by cycle, reduce this figure if you receive HTTP error 504 - Gateway timeout
@@ -1456,7 +1462,7 @@ class aeSecureCMS
     /**
      * Detect if the CMS is Cake.
      */
-    private static function iscake(string $root): bool|array
+    private static function iscake(string $root): array
     {
         $filename = rtrim($root, DS) . DS . 'admin' . DS . 'cake' . DS . 'config' . DS . 'config.php';
 
@@ -1468,14 +1474,14 @@ class aeSecureCMS
 
             return [true, 'Cake', $filename, $FullVersion, $FullVersion, $FullVersion];
         } else {
-            return false;
+            return [false, false, false, false, false, false];
         }
     }
 
     /**
      * Detect if the CMS is Concrete5.
      */
-    private static function isConcrete5(string $root): bool|array
+    private static function isConcrete5(string $root): array
     {
         $filename = rtrim($root, DS) . DS . 'concrete' . DS . 'config' . DS . 'concrete.php';
 
@@ -1487,14 +1493,14 @@ class aeSecureCMS
 
             return [true, 'Concrete5', $filename, $FullVersion, $FullVersion, $FullVersion];
         } else {
-            return false;
+            return [false, false, false, false, false, false];
         }
     }
 
     /**
      * Detect if the CMS is Contao.
      */
-    private static function isContao(string $root): bool|array
+    private static function isContao(string $root): array
     {
         $filename = rtrim($root, DS) . DS . 'system' . DS . 'config' . DS . 'constants.php';
 
@@ -1509,14 +1515,14 @@ class aeSecureCMS
 
             return [true, 'Contao', $filename, $FullVersion, $MainVersion, $FullVersion];
         } else {
-            return false;
+            return [false, false, false, false, false, false];
         }
     }
 
     /**
      * Detect if the CMS is Dolibarr.
      */
-    private static function isDolibarr(string $root): bool|array
+    private static function isDolibarr(string $root): array
     {
         $filename = rtrim($root, DS) . DS . 'htdocs' . DS . 'filefunc.inc.php';
 
@@ -1528,14 +1534,14 @@ class aeSecureCMS
 
             return [true, 'Dolibarr', $filename, $FullVersion, $FullVersion, $FullVersion];
         } else {
-            return false;
+            return [false, false, false, false, false, false];
         }
     }
 
     /**
      * Detect if the CMS is Drupal.
      */
-    private static function isDrupal(string $root): bool|array
+    private static function isDrupal(string $root): array
     {
         $filename = rtrim($root, DS) . DS . 'modules' . DS . 'system' . DS . 'system.module';
 
@@ -1547,14 +1553,14 @@ class aeSecureCMS
 
             return [true, 'Drupal', $filename, $FullVersion, $FullVersion, $FullVersion];
         } else {
-            return false;
+            return [false, false, false, false, false, false];
         }
     }
 
     /**
      * Detect if the CMS is eFront.
      */
-    private static function iseFront(string $root): bool|array
+    private static function iseFront(string $root): array
     {
         $filename = rtrim($root, DS) . DS . 'libraries' . DS . 'configuration.php';
 
@@ -1566,14 +1572,14 @@ class aeSecureCMS
 
             return [true, 'eFront', $filename, $FullVersion, $FullVersion, $FullVersion];
         } else {
-            return false;
+            return [false, false, false, false, false, false];
         }
     }
 
     /**
      * Detect if the CMS is EspoCRM.
      */
-    private static function isEspoCRM(string $root): bool|array
+    private static function isEspoCRM(string $root): array
     {
         $filename = rtrim($root, DS) . DS . 'data' . DS . 'config.php';
 
@@ -1585,14 +1591,14 @@ class aeSecureCMS
 
             return [true, 'EspoCRM', $filename, $FullVersion, $FullVersion, $FullVersion];
         } else {
-            return false;
+            return [false, false, false, false, false, false];
         }
     }
 
     /**
      * Detect if the CMS is FormaLMS.
      */
-    private static function isFormaLMS(string $root): bool|array
+    private static function isFormaLMS(string $root): array
     {
         $filename = rtrim($root, DS) . DS . 'appCore' . DS . 'index.php';
 
@@ -1604,14 +1610,14 @@ class aeSecureCMS
 
             return [true, 'FormaLMS', $filename, $FullVersion, $FullVersion, $FullVersion];
         } else {
-            return false;
+            return [false, false, false, false, false, false];
         }
     }
 
     /**
      * Detect if the CMS is Grav.
      */
-    private static function isGrav(string $root): bool|array
+    private static function isGrav(string $root): array
     {
         $filename = rtrim($root, DS) . DS . 'system' . DS . 'defines.php';
 
@@ -1623,14 +1629,14 @@ class aeSecureCMS
 
             return [true, 'Grav', $filename, $FullVersion, $FullVersion, $FullVersion];
         } else {
-            return false;
+            return [false, false, false, false, false, false];
         }
     }
 
     /**
      * Detect if the CMS is GRR.
      */
-    private static function isGrr(string $root): bool|array
+    private static function isGrr(string $root): array
     {
         $filename = rtrim($root, DS) . DS . 'include' . DS . 'misc.inc.php';
 
@@ -1645,14 +1651,14 @@ class aeSecureCMS
 
             return [true, 'GRR', $filename, $FullVersion, $FullVersion, $FullVersion, $root];
         } else {
-            return false;
+            return [false, false, false, false, false, false];
         }
     }
 
     /**
      * Detect if the CMS is Joomla.
      */
-    private static function isJoomla(string $root): bool|array
+    private static function isJoomla(string $root): array
     {
         if (
             (($wpos = strpos($root, DS . 'administrator' . DS)) > 0) ||
@@ -1726,14 +1732,14 @@ class aeSecureCMS
 
             return [true, 'Joomla', $filename, (string) $FullVersion, (string) $MainVersion, (string) $Version];
         } else {
-            return false;
+            return [false, false, false, false, false, false];
         }
     }
 
     /**
      * Detect if the CMS is Magento.
      */
-    private static function isMagento(string $root): bool|array
+    private static function isMagento(string $root): array
     {
         $filename = rtrim($root, DS) . DS . 'app' . DS . 'Mage.php';
 
@@ -1752,14 +1758,14 @@ class aeSecureCMS
 
             return [true, 'Magento', $filename, $FullVersion, $FullVersion, $FullVersion];
         } else {
-            return false;
+            return [false, false, false, false, false, false];
         }
     }
 
     /**
      * Detect if the CMS is MediaWiki.
      */
-    private static function isMediaWiki(string $root): bool|array
+    private static function isMediaWiki(string $root): array
     {
         $filename = rtrim($root, DS) . DS . 'includes' . DS . 'DefaultSettings.php';
 
@@ -1774,14 +1780,14 @@ class aeSecureCMS
 
             return [true, 'MediaWiki', $filename, $FullVersion, $FullVersion, $FullVersion, $root];
         } else {
-            return false;
+            return [false, false, false, false, false, false];
         }
     }
 
     /**
      * Detect if the CMS is phpBB.
      */
-    private static function isphpBB(string $root): bool|array
+    private static function isphpBB(string $root): array
     {
         $filename = rtrim($root, DS) . DS . 'styles' . DS . 'prosilver' . DS . 'style.cfg';
 
@@ -1796,14 +1802,14 @@ class aeSecureCMS
 
             return [true, 'phpBB', $filename, $FullVersion, $FullVersion, $FullVersion];
         } else {
-            return false;
+            return [false, false, false, false, false, false];
         }
     }
 
     /**
      * Detect if the CMS is phpList.
      */
-    private static function isphpList(string $root): bool|array
+    private static function isphpList(string $root): array
     {
         $filename = rtrim($root, DS) . DS . 'public_html' . DS . 'lists' . DS . 'admin' . DS . 'init.php';
 
@@ -1816,14 +1822,14 @@ class aeSecureCMS
 
             return [true, 'phpList', $filename, $FullVersion, $FullVersion, $FullVersion];
         } else {
-            return false;
+            return [false, false, false, false, false, false];
         }
     }
 
     /**
      * Detect if the framework is phpMyAdmin.
      */
-    private static function isphpmyadmin(string $root): bool|array
+    private static function isphpmyadmin(string $root): array
     {
         $filename = rtrim($root, DS) . DS . 'libraries' . DS . 'config.class.php';
         if (!file_exists($filename)) {
@@ -1841,14 +1847,14 @@ class aeSecureCMS
 
             return [true, 'phpmyadmin', $filename, $FullVersion, $FullVersion, $FullVersion, $root];
         } else {
-            return false;
+            return [false, false, false, false, false, false];
         }
     }
 
     /**
      * Detect if the framework is PMP.
      */
-    private static function isPMB(string $root): bool|array
+    private static function isPMB(string $root): array
     {
         $filename = rtrim($root, DS) . DS . 'includes' . DS . 'config.inc.php';
 
@@ -1863,14 +1869,14 @@ class aeSecureCMS
 
             return [true, 'PMB', $filename, $FullVersion, $FullVersion, $FullVersion, $root];
         } else {
-            return false;
+            return [false, false, false, false, false, false];
         }
     }
 
     /**
      * Detect if the CMS is Prestashop.
      */
-    private static function isPrestashop(string $root): bool|array
+    private static function isPrestashop(string $root): array
     {
         $filename = rtrim($root, DS) . DS . 'config' . DS . 'settings.inc.php';
 
@@ -1885,14 +1891,14 @@ class aeSecureCMS
 
             return [true, 'Prestashop', $filename, $FullVersion, $FullVersion, $FullVersion];
         } else {
-            return false;
+            return [false, false, false, false, false, false];
         }
     }
 
     /**
      * Detect if the CMS is SilverStripe.
      */
-    private static function isSilverStripe(string $root): bool|array
+    private static function isSilverStripe(string $root): array
     {
         $filename = rtrim($root, DS) . DS . 'cms' . DS . 'silverstripe_version';
 
@@ -1901,14 +1907,14 @@ class aeSecureCMS
 
             return [true, 'silverstripe', $filename, $FullVersion, $FullVersion, $FullVersion];
         } else {
-            return false;
+            return [false, false, false, false, false, false];
         }
     }
 
     /**
      * Detect if the CMS is WordPress.
      */
-    private static function isWordPress(string $root): bool|array
+    private static function isWordPress(string $root): array
     {
         $filename = '';
         if (strpos($root, 'wp-admin') > 0) {
@@ -1944,14 +1950,14 @@ class aeSecureCMS
 
             return [true, $CMS, $filename, $FullVersion, $FullVersion, $FullVersion];
         } else {
-            return false;
+            return [false, false, false, false, false, false];
         }
     }
 
     /**
      * Detect if the CMS is x3cms.
      */
-    private static function isx3cms(string $root): bool|array
+    private static function isx3cms(string $root): array
     {
         $filename = rtrim($root, DS) . DS . 'INSTALL' . DS . 'index.php';
 
@@ -1966,7 +1972,7 @@ class aeSecureCMS
 
             return [true, 'x3cms', $filename, $FullVersion, $FullVersion, $FullVersion];
         } else {
-            return false;
+            return [false, false, false, false, false, false];
         }
     }
 }
@@ -2839,7 +2845,7 @@ class aeSecureScan
         $aeLanguage = aeSecureLanguage::getInstance();
 
         return '<footer class="footer"><a href=' . REPO . ' target="_blank">' .
-         '&copy; Avonture Christophe 2013-' . date('Y') . ' | <span style="font-style:italic;">' .
+         '&copy; AFUJ 2025-' . date('Y') . ' | <span style="font-style:italic;">' .
          'aeSecure QuickScan v.' . VERSION . '</span>' .
         '</a></footer>';
     }
