@@ -28,6 +28,10 @@
  * Changelog:
  *
  * =======
+ * version 2.2.4 (by ConseilGouz)
+ *  + Joomla 6.1.0 / 5.4.5
+ *
+ * =======
  * version 2.2.3 (by ConseilGouz)
  *  + PHP 8.5 compatibility : is<cms> must return an array
  *  + Joomla 6.0.4 / 5.4.4
@@ -197,7 +201,7 @@ define('DEMO', false);
 
 define('DEBUG', false);              // Enable debugging (Note: there is no progress bar in debug mode)
 define('FULLDEBUG', false);          // Output a lot of information
-define('VERSION', '2.2.3');         // Version number of this script
+define('VERSION', '2.2.4');         // Version number of this script
 define('EXPERT', false);             // Display Kill file button and allow to specify a folder
 define('MAX_SIZE', 1 * 1024 * 1024); // One megabyte: skip files when filesize is greater than this max size.
 define('MAXFILESBYCYCLE', 500);      // Number of files to process by cycle, reduce this figure if you receive HTTP error 504 - Gateway timeout
