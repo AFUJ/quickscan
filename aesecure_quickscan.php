@@ -28,6 +28,10 @@
  * Changelog:
  *
  * =======
+ * version 2.2.5 (by ConseilGouz)
+ *  + PHP 8.5 : finfo_close deprecated
+ *
+ * =======
  * version 2.2.4 (by ConseilGouz)
  *  + Joomla 6.1.0 / 5.4.5
  *
@@ -201,7 +205,7 @@ define('DEMO', false);
 
 define('DEBUG', false);              // Enable debugging (Note: there is no progress bar in debug mode)
 define('FULLDEBUG', false);          // Output a lot of information
-define('VERSION', '2.2.4');         // Version number of this script
+define('VERSION', '2.2.5');         // Version number of this script
 define('EXPERT', false);             // Display Kill file button and allow to specify a folder
 define('MAX_SIZE', 1 * 1024 * 1024); // One megabyte: skip files when filesize is greater than this max size.
 define('MAXFILESBYCYCLE', 500);      // Number of files to process by cycle, reduce this figure if you receive HTTP error 504 - Gateway timeout
@@ -1309,7 +1313,9 @@ class aeSecureFiles
                 }
                 if ($finfo) {
                     $mime_type = finfo_file($finfo, $filename);
-                    finfo_close($finfo);
+                    if (version_compare(PHP_VERSION, '8.5.0', '<')) { // deprecated in PHP 8.5
+                        finfo_close($finfo);
+                    }
                 }
             }
         }
