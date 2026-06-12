@@ -3,9 +3,9 @@
 /**
  * Name          : aeSecure QuickScan - Free scanner
  * Description   : Scan your website for possible hacks, viruses, malwares, SEO black hat and exploits
- * Version       : 2.2.6
+ * Version       : 2.2.7
  * Date          : November 2018
- * Last update   : May 2026
+ * Last update   : June 2026
  * Author        : AVONTURE Christophe (christophe@avonture.be)
  * Author website: https://www.avonture.be.
  * Updater       : Pascal Leconte (pascal.leconte@conseilgouz.com)
@@ -26,6 +26,11 @@
  * services.
  *
  * Changelog:
+ *
+ * =======
+ * version 2.2.7 (by ConseilGouz)
+ *  + PHP 8.5 compatibility : curl_close deprecated
+ *  + J! extensions updates
  *
  * =======
  * version 2.2.6 (by ConseilGouz)
@@ -210,7 +215,7 @@ define('DEMO', false);
 
 define('DEBUG', false);              // Enable debugging (Note: there is no progress bar in debug mode)
 define('FULLDEBUG', false);          // Output a lot of information
-define('VERSION', '2.2.6');         // Version number of this script
+define('VERSION', '2.2.7');         // Version number of this script
 define('EXPERT', false);             // Display Kill file button and allow to specify a folder
 define('MAX_SIZE', 1 * 1024 * 1024); // One megabyte: skip files when filesize is greater than this max size.
 define('MAXFILESBYCYCLE', 500);      // Number of files to process by cycle, reduce this figure if you receive HTTP error 504 - Gateway timeout
@@ -399,7 +404,7 @@ class Download
 
                     if (!curl_setopt($ch, CURLOPT_URL, static::$sSourceURL)) {
                         fclose($fp);
-                        curl_close($ch);
+                        // curl_close($ch); php 8.5
                         $wError = self::ERROR_CURL;
                     } else {
                         // Download
@@ -431,7 +436,7 @@ class Download
 
                         $rc = curl_exec($ch);
 
-                        curl_close($ch);
+                        // curl_close($ch); php 8.5
                         fclose($fp);
 
                         if (!$rc) {
@@ -508,7 +513,7 @@ class Download
                 curl_setopt($ch, CURLOPT_FOLLOWLOCATION, false);
                 curl_setopt($ch, CURLOPT_MAXREDIRS, 3);
                 $rc = curl_exec($ch);
-                curl_close($ch);
+                // curl_close($ch); php 8.5
                 if (!$rc) {
                     $wError = self::ERROR_CURL;
                 } else {
@@ -546,7 +551,7 @@ class Download
     private function iscURLEnabled()
     {
         return  (!function_exists('curl_init') && !function_exists('curl_setopt') &&
-            !function_exists('curl_exec') && !function_exists('curl_close')) ? false : true;
+            !function_exists('curl_exec')) ? false : true;
     }
 
     /**
