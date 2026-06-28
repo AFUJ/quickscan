@@ -3,7 +3,7 @@
 /**
  * Name          : aeSecure QuickScan - Free scanner
  * Description   : Scan your website for possible hacks, viruses, malwares, SEO black hat and exploits
- * Version       : 2.2.7
+ * Version       : 2.2.8
  * Date          : November 2018
  * Last update   : June 2026
  * Author        : AVONTURE Christophe (christophe@avonture.be)
@@ -26,6 +26,10 @@
  * services.
  *
  * Changelog:
+ *
+ * =======
+ * version 2.2.8 (by ConseilGouz)
+ *  + PHP 8.5 compatibility : doCleanSite function must return a string
  *
  * =======
  * version 2.2.7 (by ConseilGouz)
@@ -215,7 +219,7 @@ define('DEMO', false);
 
 define('DEBUG', false);              // Enable debugging (Note: there is no progress bar in debug mode)
 define('FULLDEBUG', false);          // Output a lot of information
-define('VERSION', '2.2.7');         // Version number of this script
+define('VERSION', '2.2.8');         // Version number of this script
 define('EXPERT', false);             // Display Kill file button and allow to specify a folder
 define('MAX_SIZE', 1 * 1024 * 1024); // One megabyte: skip files when filesize is greater than this max size.
 define('MAXFILESBYCYCLE', 500);      // Number of files to process by cycle, reduce this figure if you receive HTTP error 504 - Gateway timeout
@@ -2878,9 +2882,9 @@ class aeSecureScan
     /**
      * Clean the site by emptying the cache folders and temporary folders.
      *
-     * @return type
+     * @return type string
      */
-    private function doCleanSite(): void
+    private function doCleanSite(): string
     {
         $output = '';
 
@@ -2911,7 +2915,7 @@ class aeSecureScan
             }
         }
 
-        echo '<ul class="list-unstyled text-success">' . $output . '</ul>';
+        return '<ul class="list-unstyled text-success">' . $output . '</ul>';
     }
 
     /**
