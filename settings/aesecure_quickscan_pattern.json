@@ -1,12 +1,12 @@
 [
   {
     "risk": "danger",
-    "pattern": "(\\@?(eval|include|system) *\\( *\\$_(COOKIES|GET|REQUEST|POST|SESSION))",
+    "pattern": "(\\@?(eval|include|system) *\\( *\\$_(GET|REQUEST|POST|SESSION))",
     "disclaimer": "HIGHPROBALITY"
   },
   {
     "risk": "danger",
-    "pattern": "(eval *\\(.*\\( *\\$_(COOKIES|GET|REQUEST|POST|SESSION))",
+    "pattern": "(eval *\\(.*\\( *\\$_(GET|REQUEST|POST|SESSION))",
     "disclaimer": "HIGHPROBALITY"
   },
   {
@@ -40,9 +40,9 @@
     "disclaimer": "HIGHPROBALITYBASE64KEYWORD"
   },
   {
-    "risk": "danger",
+    "risk": "warning",
     "pattern": "(_COOKIE)",
-    "disclaimer": "HIGHPROBALITYBASE64KEYWORD"
+    "disclaimer": "WARNINGBASE64ENCODEDPATTERN"
   },
   {
     "risk": "warning",
@@ -56,7 +56,7 @@
   },
   {
     "risk": "warning",
-    "pattern": "(base64_decode|gzdecode|gzdeflate|gzuncompress|gzcompress|readgzfile|uudecode|zlib_decode|zlib_encode|gzfile|gzget|gzpassthru)",
+    "pattern": "(cookie|base64_decode|gzdecode|gzdeflate|gzuncompress|gzcompress|readgzfile|uudecode|zlib_decode|zlib_encode|gzfile|gzget|gzpassthru)",
     "disclaimer": "WARNINGNOTMANDATORYAVIRUS"
   },
   {
