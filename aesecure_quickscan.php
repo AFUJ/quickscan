@@ -31,6 +31,7 @@
  * version 2.3.1 (by ConseilGouz)
  *  + add a note to invalid extension/invalid content in images folder message
  *  + block redo extension search on get files button click
+ *  + cookie string => risk becomes a warning
  *
  * =======
  * version 2.3.0 (by ConseilGouz)
