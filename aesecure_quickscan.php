@@ -3,7 +3,7 @@
 /**
  * Name          : aeSecure QuickScan - Free scanner
  * Description   : Scan your website for possible hacks, viruses, malwares, SEO black hat and exploits
- * Version       : 2.3.0
+ * Version       : 2.3.1
  * Date          : November 2018
  * Last update   : September 2026
  * Author        : AVONTURE Christophe (christophe@avonture.be)
@@ -26,6 +26,11 @@
  * services.
  *
  * Changelog:
+ *
+ * =======
+ * version 2.3.1 (by ConseilGouz)
+ *  + add a note to invalid extension/invalid content in images folder message
+ *  + block redo extension search on get files button click
  *
  * =======
  * version 2.3.0 (by ConseilGouz)
@@ -164,7 +169,7 @@ define('DEMO', false);
 
 define('DEBUG', false);              // Enable debugging (Note: there is no progress bar in debug mode)
 define('FULLDEBUG', false);          // Output a lot of information
-define('VERSION', '2.3.0');          // Version number of this script
+define('VERSION', '2.3.1');          // Version number of this script
 define('EXPERT', false);             // Display Kill file button and allow to specify a folder
 define('MAX_SIZE', 1 * 1024 * 1024); // One megabyte: skip files when filesize is greater than this max size.
 define('MAXFILESBYCYCLE', 500);      // Number of files to process by cycle, reduce this figure if you receive HTTP error 504 - Gateway timeout
@@ -3399,7 +3404,7 @@ class aeSecureScan
                                 $bFound    = true;
                                 $FOUND =
                                 '<span class="label label-danger blink">' . $aeLanguage->get('DANGER') . '</span>&nbsp;' . $aeLanguage->get('WRONGEXTENSION') .' : '.$infos['extension'].
-                                '<span class="newline">&nbsp;</span>';
+                                '<span class="newline">'.$aeLanguage->get('WRONGEXTENSIONNOTE') .'</span>';
                                 $output_line = str_replace('$FOUND$', $FOUND, $OutputTemplate);
                                 if (FULLDEBUG && !aeSecureFct::isAjaxRequest()) {
                                     echo sprintf(
@@ -3426,7 +3431,7 @@ class aeSecureScan
                                 $bFound    = true;
                                 $FOUND =
                                 '<span class="label label-danger blink">' . $aeLanguage->get('DANGER') . '</span>&nbsp;' . $aeLanguage->get('WRONGIMAGE').$filename.
-                                '<span class="newline">&nbsp;</span>';
+                                '<span class="newline">'.$aeLanguage->get('WRONGIMAGENOTE').'</span>';
                                 $output_line = str_replace('$FOUND$', $FOUND, $OutputTemplate);
                                 if (FULLDEBUG && !aeSecureFct::isAjaxRequest()) {
                                     echo sprintf(
@@ -4528,6 +4533,7 @@ echo aeSecureFct::addJavascript(
                 $.ajax({
                     beforeSend: function() {
                         if(!$debug) $('#getcountfiles').prop("disabled", true);
+                        $('#getextensions').prop("disabled", true);
                         $('.popover').popover('hide');
                         $('#getcountfiles').html("3. <?php echo $aeLanguage->get('RUNNING');?>");
                         $('#result').empty();
