@@ -3,7 +3,7 @@
 /**
  * Name          : aeSecure QuickScan - Free scanner
  * Description   : Scan your website for possible hacks, viruses, malwares, SEO black hat and exploits
- * Version       : 2.3.1
+ * Version       : 2.3.2
  * Date          : November 2018
  * Last update   : September 2026
  * Author        : AVONTURE Christophe (christophe@avonture.be)
@@ -26,6 +26,10 @@
  * services.
  *
  * Changelog:
+ *
+ * =======
+ * version 2.3.2 (by ConseilGouz)
+ *  + optimize extensions search
  *
  * =======
  * version 2.3.1 (by ConseilGouz)
@@ -2518,12 +2522,8 @@ class aeSecureScan
         $db->setQuery($query);
         $extensions = $db->loadObjectList();
         $sites =  [];
-        $this->aeProgress->setStart(0);
-        $this->aeProgress->setEnd(count($extensions) * 2);
-
-        $abbr = ['component' => 'com', 'module' => 'mod', 'plugin' => 'plg', 'library' => 'lib'];
+        $abbr = ['component' => 'com', 'module' => 'mod', 'plugin' => 'plg', 'library' => 'lib', 'package' => 'pkg'];
         foreach ($extensions as $extension) {
-            $this->aeProgress->incTaskCount();
             $manifest = json_decode($extension->manifest_cache);
             if (in_array($extension->name.'-'.$version.'.json', $hash_ext)) {
                 continue;
@@ -2543,10 +2543,10 @@ class aeSecureScan
                 }
                 $filename = $manifest->filename;
                 if (strpos($filename, $type.'_') !== false) {
-                    $filename = trim($filename, $type.'_');
+                    $filename = str_replace($type.'_', '', $filename);
                 }
                 if (strpos($filename, $folder) !== false) {
-                    $filename = trim($filename, $folder);
+                    $filename = str_replace($folder, '', $filename);
                 }
                 $sites[$type.'_'.$folder.$filename.'?'.$version] = $site;
             }
@@ -2559,7 +2559,6 @@ class aeSecureScan
         $this->create_extensions_json($CMS, $CMSVersion);
         // reload extensions hashes
         [$this->_arrExtHashes] = $this->getExtHashes($CMS);
-        $this->aeProgress->clean();
     }
     /**
      * get one extension update information from #__update_sites table
@@ -2585,15 +2584,19 @@ class aeSecureScan
     {
         $xmls = simplexml_load_file($file);
         $url = "";
+        $latest = "";
         foreach ($xmls->update as $xml) {
             if ($xml->version == $version) {
                 //                return true; // version OK
             }
             if ($xml->targetplatform) {
-                $target = (array)$xml->targetplatform->attributes()->version;
-                $target = $target[0];
-                if (preg_match('/^' . $target . '/', $CMSVersion)) {
-                    $url = $xml->downloads->downloadurl;
+                if ($xml->version > $latest) {
+                    $latest = $xml->version;
+                    $target = (array)$xml->targetplatform->attributes()->version;
+                    $target = $target[0];
+                    if (preg_match('/^' . $target . '/', $CMSVersion)) {
+                        $url = $xml->downloads->downloadurl;
+                    }
                 }
             }
         }
@@ -2610,8 +2613,8 @@ class aeSecureScan
         if ($CMS == 'Joomla') {
             $dir = 'J!extensions';
         }
-        $filename = 'hashes/' . $dir . '/'.$name.'-'.$xml->version.'.zip';
-        $jsonfile = 'hashes/' . $dir . '/'.$name.'-'.$xml->version.'.json';
+        $filename = 'hashes/' . $dir . '/'.$name.'-'.$latest.'.zip';
+        $jsonfile = 'hashes/' . $dir . '/'.$name.'-'.$latest.'.json';
         if (is_file($filename) || is_file($jsonfile)) {
             return true;
         }
@@ -2647,11 +2650,9 @@ class aeSecureScan
             // Only one single file for everything present in the "other" folder
             $subfolders = [$Folder];
         }
-
         if (count($subfolders) > 0) {
             $tmp = '';
             foreach ($subfolders as $folder) {
-                $this->aeProgress->incTaskCount();
                 // The file with the hashes will be something like hashes/joomla/J!2.5.27.json
                 if (!in_array($Folder, ['blacklist', 'other'])) {
                     $filename = $hashFolder . DS . $prefix . str_replace($hashFolder . DS, '', $folder) . '.json';
