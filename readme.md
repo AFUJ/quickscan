@@ -86,7 +86,7 @@ aeSecure QuickScan téléchargera automatiquement trois ou quatre fichiers suppl
 
 ### Découvrir l'interface
 
-![Interface](images/interface.png)
+![Interface](images/aesecure_2.3.1.png)
 
 Quelques points :
 
