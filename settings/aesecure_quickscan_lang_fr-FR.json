@@ -96,6 +96,8 @@
     "GETTINGEXTENSIONS": "Obtention de la liste des extensions...  Merci de patienter.",
     "RESTARTEXTENSIONS": "<p class='text-success'>Vous pouvez charger directement les fichiers zip de vos extensions en erreur dans le répertoire hashes/J!extensions</p><p class='text-success'>Puis relancer l'application : ils seront pris en charge automatiquement afin de réduire les 'faux positifs'.</p><p class='text-success'Sinon, vous pouvez passer à l'étape 3.>",
     "BTNRESTARTEXTENSIONS": "Refaire la recherche des extensions",
-    "WRONGEXTENSION": "<strong class=\"text-danger\">Ce fichier a un type interdit.</strong>",
-    "WRONGIMAGE": "<strong class=\"text-danger\">Ce fichier n'est pas supposé être dans le répertoire images : .</strong>"
+    "WRONGEXTENSION": "<strong class=\"text-danger\">Ce fichier a un type interdit </strong>",
+    "WRONGEXTENSIONNOTE": "<br><strong>Sur une installation Joomla, ce type de fichier n'existe pas. Il y a de fortes probabilités que ce soit un INTRUS.</strong><br>&nbsp;",
+    "WRONGIMAGE": "<strong class=\"text-danger\">Ce fichier n'est pas supposé être dans le répertoire images : </strong>",
+    "WRONGIMAGENOTE": "<br><strong>Le répertoire images de Joomla ne doit contenir que des fichiers d'images.Tout autre type de fichier doit être considéré comme un INTRUS.</strong><br>&nbsp;"
 }

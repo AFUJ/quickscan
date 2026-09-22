@@ -95,7 +95,9 @@
     "BTNGETEXTENSIONSDONE" : "Extensions OK",
     "GETTINGEXTENSIONS": "Getting extensions list...  Please wait.",
     "RESTARTEXTENSIONS": "<p class='text-success'>You may copy your extensions zip file in hashes/J!extensions folder</p><p class='text-success'>Then restart get extensions process : they will be used to reduce 'false positive'.Otherwise you mau proceed to step 3.</p>",
-    "BTNRESTARTEXTENSIONS": "Get extensions again",
+    "BTNRESTARTEXTENSIONS": "Redo get extensions",
     "WRONGEXTENSION": "<strong class=\"text-danger\">This file has a prohibited extension : .</strong>",
-    "WRONGIMAGE": "<strong class=\"text-danger\">This file is not suppose to be in images folder : .</strong>"
+    "WRONGEXTENSIONNOTE": "<br><strong>On Joomla installation, this file type does not exist. The probability of VIRUS is high.</strong><br>&nbsp;",
+    "WRONGIMAGE": "<strong class=\"text-danger\">This file is not supposed to be in Images folder : </strong>",
+    "WRONGIMAGENOTE": "<br><strong>Joomla's images folder should only contain image files.Any ohter file must be considered as a VIRUS.</strong><br>&nbsp;"
 }
