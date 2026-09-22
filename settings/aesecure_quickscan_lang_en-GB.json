@@ -89,5 +89,13 @@
     "WARNINGBASE64ENCODEDPATTERN": "Virus authors sometimes use \"base64\" coding to hide their viral code; some PHP keywords such as \"eval\" or \"system\" allow the execution of a code and the signature that is mentioned here can be risky. To decode base64 code, you can use different \"base64_decode\" decoders available on the net, such as https://base64.avonture.be/",
     "WARNINGNOTMANDATORYAVIRUS": "This is not necessarily a virus! but the keyword used is suspicious",
     "WHITE_LIST_HINT": "<strong>Add this file to the whitelist.</strong><br/>If you don't want this file anymore in the list of suspicious files and you know that the file is clean, add it to the whitelist.",
-    "WHITE_LIST": "Flag this file as safe"
+    "WHITE_LIST": "Flag this file as safe",
+    "BTNGETEXTENSIONS":"Get your extensions",
+    "BTNGETEXTENSIONSHINT" : "Get your installed extensions from developer site",
+    "BTNGETEXTENSIONSDONE" : "Extensions OK",
+    "GETTINGEXTENSIONS": "Getting extensions list...  Please wait.",
+    "RESTARTEXTENSIONS": "<p class='text-success'>You may copy your extensions zip file in hashes/J!extensions folder</p><p class='text-success'>Then restart get extensions process : they will be used to reduce 'false positive'.Otherwise you mau proceed to step 3.</p>",
+    "BTNRESTARTEXTENSIONS": "Get extensions again",
+    "WRONGEXTENSION": "<strong class=\"text-danger\">This file has a prohibited extension : .</strong>",
+    "WRONGIMAGE": "<strong class=\"text-danger\">This file is not suppose to be in images folder : .</strong>"
 }

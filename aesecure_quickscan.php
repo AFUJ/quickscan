@@ -3,9 +3,9 @@
 /**
  * Name          : aeSecure QuickScan - Free scanner
  * Description   : Scan your website for possible hacks, viruses, malwares, SEO black hat and exploits
- * Version       : 2.2.10
+ * Version       : 2.3.0
  * Date          : November 2018
- * Last update   : August 2026
+ * Last update   : September 2026
  * Author        : AVONTURE Christophe (christophe@avonture.be)
  * Author website: https://www.avonture.be.
  * Updater       : Pascal Leconte (pascal.leconte@conseilgouz.com)
@@ -26,6 +26,12 @@
  * services.
  *
  * Changelog:
+ *
+ * =======
+ * version 2.3.0 (by ConseilGouz)
+ *  + create extensions json from developer site
+ *  + Joomla : check for invalid extensions phtm?l?|shtm?l?|phpt|ash?x|aspx?|cfml?|pl|jsp
+ *  + Joomla : check for php or invalid extensions in images folder
  *
  * =======
  * version 2.2.10 (by ConseilGouz)
@@ -133,79 +139,6 @@
  *	+ Moving project to afuj
  *	+ Add extensions hashes
  *
- * version 2.0.3
- *    + Prevent empty files to be scanned
- *    + Immediately show the listing of files having detected as being a virus (blacklist) or
- *      containing a virus (edited file having a virus load)
- *
- * version 2.0.2
- *    + Revert to PHP 8.0 compatibility
- *
- * version 2.0.1
- *    + Add the "_COOKIE" pattern in aesecure_quickscan_pattern.json
- *
- * version 2.0
- *    + PHP 8.2 compatibility
- *    + look for hashes in hashes directory
- *
- * version 1.2
- *    + Rewrite for downloading all settings and signatures files from GitHub
- *    + Add a lot more signatures in these lists: blacklist, whitelist, other and edited json
- *    + Ad more patterns for viruses detection
- *    + Reformat the code of the scanner
- *
- * version 1.1.12
- *    + Add support for Grr, mediawiki, piwik and pmb
- *    + Solve an issue with session_start() for some hosts
- *
- * version 1.1.11
- *    + Add support for Grav
- *
- * version 1.1.10
- *    + Add support for phpMyAdmin
- *
- * version 1.1.9
- *    + Solve an error with session_start (on some hoster, the creation of the session gives a fatal error due to incorrect path)
- *
- * version 1.1.8
- *    + Solve an error with the link to the FAQ
- *    + Better handling of languages files
- *
- * version 1.1.7
- *    + Add localizations (class aeSecureLanguage)
- *
- * version 1.1.6
- *    + Improve the detection of the list of files by immediatly skipping whitelisted files.  On a site of 4.900 files, the scanner will be able to detect that
- *      only 11 files should be scanned if 4.889 are already white listed.  This way, the scanner will be really fast.
- *
- * version 1.1.5
- *    + Small change to correctly handle Joomla 3.5.0 with a newer way to determine the version number (no more dollar sign before variables name)
- *
- * version 1.1.4
- *    + Add aesecure_quickscan.whitelist.json as a file to download from avonture.be to speed up the processing and reduce the number of false positive
- *    + Add a lot of new signatures in the blacklist
- *
- * version 1.1.3
- *    + Add a timeout for the CURL request
- *
- * version 1.1.2
- *    + Support of concrete5, contao (aka previously called Typolight), dolibarr, eFront, EspoCRM, formaLMS, phpBB, phpList,
- *         SilverStripe and x3cms
- *
- * version 1.1.1
- *    + Monitored folders for Joomla: files present in a native Joomla's folder (part of the CMS) will
- *      be analysed
- *          - If not part of the distribution (intrusion)
- *          - If part of the distribution but with an another hash (hacked file or, at least, altered one)
- *
- * version 1.1.0
- *    + Support CakePHP, Drupal, Magento, PrestaShop (on top of Joomla and WordPress)
- *    + Improved security by no more loading core Joomla files
- *    + Advanced menu (left side)
- *        + Allow to activate debug and expert mode (without any changes in the code)
- *        + Allow to specify how many files to process by cycle (without any changes in the code)
- *        + Allow to specify with type of files to ignore (archives, images, medias, ...)
- *
  * Avoid __DIR__.
  *
  *      __DIR__ is the folder where the running script is started so, perhaps, things like
@@ -218,6 +151,8 @@
  *      So, don't use __DIR__ but c:/sites/hacked/
  */
 
+const _JEXEC = 1;
+
 define('REPO', 'https://github.com/AFUJ/quickscan/');
 
 define('DIR', str_replace('/', DIRECTORY_SEPARATOR, dirname((string) $_SERVER['SCRIPT_FILENAME'])));
@@ -229,7 +164,7 @@ define('DEMO', false);
 
 define('DEBUG', false);              // Enable debugging (Note: there is no progress bar in debug mode)
 define('FULLDEBUG', false);          // Output a lot of information
-define('VERSION', '2.2.10');         // Version number of this script
+define('VERSION', '2.3.0');          // Version number of this script
 define('EXPERT', false);             // Display Kill file button and allow to specify a folder
 define('MAX_SIZE', 1 * 1024 * 1024); // One megabyte: skip files when filesize is greater than this max size.
 define('MAXFILESBYCYCLE', 500);      // Number of files to process by cycle, reduce this figure if you receive HTTP error 504 - Gateway timeout
@@ -257,6 +192,7 @@ define('ExtText', 'ini, json, log, md, mo, po, sql, text, txt, xml, xsl');
 
 define('CRLF', "\r\n");
 define('DS', DIRECTORY_SEPARATOR);
+
 
 // Register error handling functions
 set_error_handler(function ($code, $string, $file, $line): never {
@@ -1749,7 +1685,7 @@ class aeSecureProgressBar
         } catch (Exception $e) {
         }
 
-        die();
+        die(__LINE__);
     }
 
     /**
@@ -2085,7 +2021,7 @@ class aeSecureScan
                     // Detect the existence of the whitelist.json file
                     $filename = DIR . DS . self::WHITELIST;
                     echo file_exists($filename) ? 1 : 0;
-                    die();
+                    die(__LINE__);
 
                     break;
                 }
@@ -2186,6 +2122,12 @@ class aeSecureScan
                     break;
                 }
 
+                case 'getextensions': {
+                    die($this->getExtensions());
+
+                    break;
+                }
+
                 case 'getcountfiles': {
                     die($this->getCountFiles());
 
@@ -2201,7 +2143,7 @@ class aeSecureScan
                     $filename = base64_decode((string) aeSecureFct::getParam('filename', 'string', ''));
 
                     if ('' != $filename) {
-                        die($this->aeFiles->KillFile($filename));
+                        die($this->aeFiles->KillFile($filename).':'.__LINE__);
                     }
 
                     break;
@@ -2315,7 +2257,7 @@ class aeSecureScan
                         ],
                         JSON_THROW_ON_ERROR
                     );
-                    die('');
+                    die(__LINE__);
 
                     break;
                 }
@@ -2323,7 +2265,7 @@ class aeSecureScan
                 case 'whitelist': {
                     $filename = base64_decode((string) aeSecureFct::getParam('filename', 'string', ''));
 
-                    die($this->WhiteList($filename));
+                    die($this->WhiteList($filename).':'.__LINE__);
 
                     break;
                 }
@@ -2346,7 +2288,7 @@ class aeSecureScan
         }
         $ret = [];
         foreach ($githubdir as $obj) {
-            if (isset($obj->name)) {
+            if (isset($obj->name) && $obj->type == 'file') {
                 if (!in_array($obj->name, $ret)) {
                     $ret[] = $obj->name;
                 }
@@ -2535,6 +2477,418 @@ class aeSecureScan
 
         return '<ul class="list-unstyled text-success">' . $output . '</ul>';
     }
+    /**
+     * Check extensions from database
+     * For each extension :
+     * - check if present in the default list
+     * - download it from developper site
+     * - create a json file
+     *
+     * then reload the extensions hashes file and all the new json files
+     *
+     */
+    private function check_extensions($CMS, $CMSVersion, $hash_ext)
+    {
+        // Load system defines
+        if (file_exists(DIR . '/defines.php')) {
+            require_once DIR . '/defines.php';
+        }
+
+        if (!defined('_JDEFINES')) {
+            define('JPATH_BASE', DIR);
+            require_once JPATH_BASE . '/includes/defines.php';
+        }
+        // need to do more work : load the framework
+        require_once JPATH_BASE . '/includes/framework.php';
+
+        $db      = \Joomla\CMS\Factory::getContainer()->get(\Joomla\Database\DatabaseInterface::class);
+        $query = $db->createQuery()
+            ->select('*')
+            ->from($db->quoteName('#__extensions'))
+            ->where($db->quoteName('extension_id').' > 10000')
+            ->where($db->quoteName('enabled').' = 1')
+            ->where($db->quoteName('package_id').'= 0');
+
+        $db->setQuery($query);
+        $extensions = $db->loadObjectList();
+        $sites =  [];
+        $this->aeProgress->setStart(0);
+        $this->aeProgress->setEnd(count($extensions) * 2);
+
+        $abbr = ['component' => 'com', 'module' => 'mod', 'plugin' => 'plg', 'library' => 'lib'];
+        foreach ($extensions as $extension) {
+            $this->aeProgress->incTaskCount();
+            $manifest = json_decode($extension->manifest_cache);
+            if (in_array($extension->name.'-'.$version.'.json', $hash_ext)) {
+                continue;
+            }
+            $version = $manifest->version;
+            $name = $extension->name;
+            $type = $extension->type;
+            $site = $this->get_extensions_update_file($extension->extension_id);
+            if ($site && !in_array($site, $sites)) {
+                $type = $extension->type;
+                if ($abbr[$type]) {
+                    $type = $abbr[$type];
+                }
+                $folder = "";
+                if ($type == 'plg' && $extension->folder) {
+                    $folder = $extension->folder.'_';
+                }
+                $filename = $manifest->filename;
+                if (strpos($filename, $type.'_') !== false) {
+                    $filename = trim($filename, $type.'_');
+                }
+                if (strpos($filename, $folder) !== false) {
+                    $filename = trim($filename, $folder);
+                }
+                $sites[$type.'_'.$folder.$filename.'?'.$version] = $site;
+            }
+        }
+        foreach ($sites as $key => $site) {
+            // site = site ? version
+            $one = explode('?', $key);
+            $this->get_extension_update($one[0], $one[1], $site, $CMS, $CMSVersion);
+        }
+        $this->create_extensions_json($CMS, $CMSVersion);
+        // reload extensions hashes
+        [$this->_arrExtHashes] = $this->getExtHashes($CMS);
+        $this->aeProgress->clean();
+    }
+    /**
+     * get one extension update information from #__update_sites table
+     */
+
+    private function get_extensions_update_file($id)
+    {
+        $db      = \Joomla\CMS\Factory::getContainer()->get(\Joomla\Database\DatabaseInterface::class);
+        $query = $db->createQuery()
+            ->select('location')
+            ->from($db->quoteName('#__update_sites_extensions').' AS u')
+            ->join('LEFT', $db->quoteName('#__update_sites').' AS site ON u.update_site_id = site.update_site_id')
+            ->where($db->quoteName('u.extension_id').' = '.$id);
+        $req = $query->__toString();
+        $db->setQuery($query);
+        $site = $db->loadResult();
+        return $site;
+    }
+    /**
+     * get one extension installation file from its developer
+     */
+    private function get_extension_update($name, $version, $file, $CMS, $CMSVersion)
+    {
+        $xmls = simplexml_load_file($file);
+        $url = "";
+        foreach ($xmls->update as $xml) {
+            if ($xml->version == $version) {
+                //                return true; // version OK
+            }
+            if ($xml->targetplatform) {
+                $target = (array)$xml->targetplatform->attributes()->version;
+                $target = $target[0];
+                if (preg_match('/^' . $target . '/', $CMSVersion)) {
+                    $url = $xml->downloads->downloadurl;
+                }
+            }
+        }
+        if (!$url) { // no update
+            return true;
+        }
+
+        $aeDownload = new Download('Quickscan');
+        if (trim('' !== $url)) {
+            $url = ltrim(rtrim((string) $url, '/'), '/');
+        }
+        $aeDownload->setURL(trim($url));
+        $dir = "Joomla";
+        if ($CMS == 'Joomla') {
+            $dir = 'J!extensions';
+        }
+        $filename = 'hashes/' . $dir . '/'.$name.'-'.$xml->version.'.zip';
+        $jsonfile = 'hashes/' . $dir . '/'.$name.'-'.$xml->version.'.json';
+        if (is_file($filename) || is_file($jsonfile)) {
+            return true;
+        }
+        $aeDownload->setFileName($filename);
+        $aeDownload->download();
+    }
+    /**
+     * create json files from all new downloaded files
+     */
+    private function create_extensions_json($CMS, $CMSVersion)
+    {
+        $out = "";
+        $Folder = "Joomla";
+        $prefix = "";
+        if ($CMS == 'Joomla') {
+            $Folder = 'J!extensions';
+            $prefix = "";
+        }
+        $hashFolder = DIR.'/hashes/' . $Folder;
+        $errors = $this->recurceZip($hashFolder); // unzip all zip files
+        if ($errors) {
+            $aeLanguage = aeSecureLanguage::getInstance();
+            echo $aeLanguage->get('RESTARTEXTENSIONS') ;
+            echo "<script>";
+            echo "$('#getextensions').html('2.".$aeLanguage->get('BTNRESTARTEXTENSIONS')."');";
+            echo "$('#getextensions').prop('disabled', false);";
+            echo "</script>";
+        }
+        if (!in_array($Folder, ['blacklist', 'other'])) {
+            // This is a folder like "Joomla" : one json file by subfolder since a subfolder contain a specific version of that CMS
+            $subfolders = array_filter(glob($hashFolder . DS . '*'), 'is_dir');
+        } else {
+            // Only one single file for everything present in the "other" folder
+            $subfolders = [$Folder];
+        }
+
+        if (count($subfolders) > 0) {
+            $tmp = '';
+            foreach ($subfolders as $folder) {
+                $this->aeProgress->incTaskCount();
+                // The file with the hashes will be something like hashes/joomla/J!2.5.27.json
+                if (!in_array($Folder, ['blacklist', 'other'])) {
+                    $filename = $hashFolder . DS . $prefix . str_replace($hashFolder . DS, '', $folder) . '.json';
+                } else {
+                    $filename = dirname(dirname($hashFolder)) . DS . $Folder . '.json';
+                    $folder  = $hashFolder;
+                }
+
+                if ((!file_exists($filename)) || (in_array($Folder, ['blacklist', 'other']))) {
+                    $this->makeJSON($folder, $filename);
+                    $out .= '<p class="text-success">'.$filename.' has been created.</p>';
+                } else {
+                    $out .= '<p class="text-danger">'.$filename.' has been ignored.</p>';
+                }
+                if (is_dir($folder)) { // unzipped folder ?
+                    $this->aeFiles->rrmdir($folder, true, []);
+                }
+            }
+
+            if ('' != $tmp) {
+                $out .= '<h3>Scan ' . $hashFolder . '</h3>';
+                $out .= '<ol>' . $tmp . '</ol>';
+            }
+        }
+    }
+    /**
+     * Unzip one extension
+     */
+    private function recurceZip($path)
+    {
+        $all_path = [];
+        $files = null;
+        $errors = 0;
+        if (file_exists($path) && is_dir($path)) {
+            $files = array_diff(scandir($path), array('..', '.'));
+        }
+        if ($files) {
+            foreach ($files as $key => $value) {
+                $file_info = pathinfo($value);
+                if (isset($file_info['extension']) && $file_info['extension'] === 'zip') {
+                    $file_name = $path . '/' . $file_info['basename'];
+                    $zip = new ZipArchive();
+                    if ($zip->open($file_name) === true) {
+                        if (is_dir($path . '/' . $file_info['filename'])) { // zip déjà traité
+                            // echo '<p class="text-danger">'.$file_name.' already unzipped.</p>';
+                            $zip->close();
+                            unlink($file_name);
+                            continue;// ignore
+                        }
+                        $all_path[] = $path . '/' . $file_info['filename'];
+                        $zip->extractTo($path . '/' . $file_info['filename']);
+                        $zip->close();
+                        unlink($file_name);
+                    } else {
+                        echo '<p class="text-danger">Erreur sur le fichier '.$file_name.'.</p>';
+                        $errors++;
+                        unlink($file_name);
+                        continue;
+                    }
+                }
+                if (!isset($file_info['extension'])) {
+                    $all_path[] = $path . '/' . $file_info['filename'];
+                }
+            }
+        }
+        foreach ($all_path as $k => $v) {
+            $path = $v;
+            $this->recurceZip($path);
+        }
+        return $errors;
+    }
+    /**
+     * make one json file
+     */
+    private function makeJSON($folder, $filename)
+    {
+        // Make a JSON file to retrieve all MD5 hashes
+        $arrFiles = [];
+
+        $dir   = new RecursiveDirectoryIterator($folder . DS, RecursiveDirectoryIterator::SKIP_DOTS);
+        $files = new RecursiveIteratorIterator($dir, RecursiveIteratorIterator::LEAVES_ONLY);
+
+        foreach ($files as $name => $object) {
+            $arrFiles[] = $name;
+        }
+
+        if (count($arrFiles) > 0) {
+            if (file_exists($filename)) {
+                $json = json_decode(file_get_contents($filename), true);
+                if (0 == count($json)) {
+                    echo '<h1>Problem reading file ' . $filename . '.  Error reading json</h1>';
+                    die('rrmdir'.__LINE__);
+                }
+
+                // Keep the filesize before any changes
+                clearstatcache();
+                $fsize = filesize($filename);
+            } else {
+                $json = [];
+                $fsize = 0;
+            }
+
+            foreach ($arrFiles as $file) {
+                // Skippe readme.txt file in the root folder
+                if ($file == $folder . DS . 'readme.txt') {
+                    continue;
+                }
+                // ignore installation directory
+                if (str_starts_with($file, $folder . DS .'installation')) {
+                    continue;
+                }
+                $relativefName = str_replace($folder, '', $file);
+
+                // If the filename is called aesecure_quickscan.whitelist.json or
+                // just whitelist.json, open it and process every entries of it
+                if (in_array($file, [$folder . DS . 'aesecure_quickscan.whitelist.json', $folder . DS . 'whitelist.json'])) {
+                    $white = json_decode(file_get_contents($file), true);
+                    foreach ($white as $md5 => $fname) {
+                        if (!(isset($json[$md5]))) {
+                            $json[$md5] = $relativefName;
+                        }
+                    }
+                } else {
+                    // It's a normal file, calculate the md5 of the file itself
+                    $md5 = @md5_file($file);
+
+                    if (false !== $md5) {
+                        if (!(isset($json[$md5]))) {
+                            $json[$md5] = '1';
+                        }
+
+                        // Get the hash for both UNIX and WINDOWS system
+                        $md5 = md5(str_replace("\r\n", "\n", file_get_contents($file)));
+                        if (!(isset($json[$md5]))) {
+                            $json[$md5] = '1';
+                        }
+
+                        $md5 = md5(str_replace("\n", "\r\n", file_get_contents($file)));
+                        if (!(isset($json[$md5]))) {
+                            $json[$md5] = '1';
+                        }
+                    }
+                }
+
+                // and kill the file, no more needed
+                if (in_array(basename($filename), ['blacklist.json', 'other.json'])) {
+                    @unlink($file);
+                }
+            }
+
+            // Security, check that we've at least one file
+            if (count($json) > 0) {
+                if ($this->json_val(json_encode($json))) {
+                    asort($json);
+
+                    if (file_exists($filename)) {
+                        copy($filename, $filename . '.backup');
+                    }
+
+                    // Output the file with all hashes
+                    $fp = fopen($filename, 'w');
+                    fwrite($fp, json_encode($json));
+                    fclose($fp);
+                    unset($fp);
+
+                    clearstatcache();
+
+                    if (filesize($filename) < $fsize) {
+                        unlink($filename);
+                        rename($filename . '.backup', $filename);
+                        echo '<h1 class=‘text-danger’>There has been a problem with updating the ' . $filename . '.  The file prior to the changes has been restored.</h1>';
+                    } else {
+                        // Ok, backup file isn't needed, everything was ok.
+                        if (file_exists($filename . '.backup')) {
+                            unlink($filename . '.backup');
+                        }
+                    }
+                }
+            }
+        }
+
+        if (in_array(basename($filename), ['blacklist.json', 'other.json'])) {
+            $this->aeFiles->rrmdir($folder = $folder, $killroot = false, $arrIgnoreFiles = ['readme.txt']);
+        }
+    }
+    private function json_val($string)
+    {
+        // decode the JSON data
+        $result = json_decode($string);
+
+        // switch and check possible JSON errors
+        switch (json_last_error()) {
+            case JSON_ERROR_NONE:
+                // JSON is valid // No error has occurred
+                $error = '';
+
+                break;
+            case JSON_ERROR_DEPTH:
+                $error = 'The maximum stack depth has been exceeded.';
+
+                break;
+            case JSON_ERROR_STATE_MISMATCH:
+                $error = 'Invalid or malformed JSON.';
+
+                break;
+            case JSON_ERROR_CTRL_CHAR:
+                $error = 'Control character error, possibly incorrectly encoded.';
+
+                break;
+            case JSON_ERROR_SYNTAX:
+                $error = 'Syntax error, malformed JSON.';
+
+                break;
+            case JSON_ERROR_UTF8:
+                $error = 'Malformed UTF-8 characters, possibly incorrectly encoded.';
+
+                break;
+            case JSON_ERROR_RECURSION:
+                $error = 'One or more recursive references in the value to be encoded.';
+
+                break;
+            case JSON_ERROR_INF_OR_NAN:
+                $error = 'One or more NAN or INF values in the value to be encoded.';
+
+                break;
+            case JSON_ERROR_UNSUPPORTED_TYPE:
+                $error = 'A value of a type that cannot be encoded was given.';
+
+                break;
+            default:
+                $error = 'Unknown JSON error occurred.';
+
+                break;
+        }
+
+        if ('' !== $error) {
+            // throw the Exception or exit // or whatever :)
+            exit($error);
+        }
+
+        // everything is OK
+        return $result;
+    }
 
     /**
      * Read the json files with hashes (whitelist, other and blacklist) and initialize arrays
@@ -2613,7 +2967,43 @@ class aeSecureScan
 
         return true;
     }
+    /**
+     * Scan the disk and search for each files that will be then processed by the scanner.
+     * This function will initialize the arrFiles session variable.
+     */
+    private function getExtensions(): bool
+    {
+        $aeLanguage = aeSecureLanguage::getInstance();
 
+        try {
+            if (!get_cfg_var('safe_mode')) {
+                // set_time_limit isn't used when safe_mode is active
+                // No max execution time
+                @ini_set('max_execution_time', '0');
+                // Remove time limit; avoid 504 HTTP errors
+                @ini_set('set_time_limit', '0');
+            }
+        } catch (Exception $e) {
+        }
+
+        // Allocate the maximum allowed memory to the script (-1 = no limit)
+        @ini_set('memory_limit', (true !== $this->aeSession->get('Debug', DEBUG)) ? -1 : MEMORY_LIMIT);
+
+        [$CMS, $CMSFullVersion, $CMSMainVersion, $CMSVersion, $SiteRoot] = aeSecureCMS::getInfo($this->_directory);
+
+        [$this->_arrExtHashes] = $this->getExtHashes($CMS);
+
+        $this->check_extensions($CMS, $CMSVersion, $this->_arrExtHashes);
+
+        try {
+            ob_end_flush();
+            flush();
+        } catch (Exception $e) {
+        }
+
+
+        return true;
+    }
     /**
      * Scan the disk and search for each files that will be then processed by the scanner.
      * This function will initialize the arrFiles session variable.
@@ -2808,8 +3198,8 @@ class aeSecureScan
                 flush();
             } catch (\Exception $e) {
             }
-
-            die();
+            return true;
+            die('getCountFiles : '.__LINE__);
         } else {
             return true;
         }
@@ -2838,6 +3228,16 @@ class aeSecureScan
 
         // Allocate the maximum allowed memory to the script (-1 = no limit)
         @ini_set('memory_limit', (true !== $this->aeSession->get('Debug', DEBUG)) ? -1 : MEMORY_LIMIT);
+
+        $forbiddenext = "";
+        [$CMS, $CMSFullVersion, $CMSMainVersion, $CMSVersion, $SiteRoot] = aeSecureCMS::getInfo($this->_directory);
+        $file = DIR . DS . self::SUPPORTED_CMS;
+        if (is_file($file)) {
+            $arrCMS = json_decode(file_get_contents($file), true, 512, JSON_THROW_ON_ERROR);
+            if (isset($arrCMS[strtolower($CMS)]['forbiddenext'])) {
+                $forbiddenext = $arrCMS[strtolower($CMS)]['forbiddenext'];
+            }
+        }
 
         $wFile          = 0;
         $wCount         = 0;
@@ -2990,7 +3390,57 @@ class aeSecureScan
                                 '<span class="md5" title="MD5" data-toggle="popover" data-content="' . $aeLanguage->get('MD5') . '">' . $md5 . '</span>' .
                                 '$FOUND$' .
                             '</li>';
-
+                        // check for prohibited extensions
+                        $infos = pathinfo($filename);
+                        if ($forbiddenext && isset($infos['extension'])) {
+                            preg_match('/'.$forbiddenext.'/', $infos['extension'], $output_array);
+                            if (count($output_array)) {
+                                $bInfected = true;
+                                $bFound    = true;
+                                $FOUND =
+                                '<span class="label label-danger blink">' . $aeLanguage->get('DANGER') . '</span>&nbsp;' . $aeLanguage->get('WRONGEXTENSION') .' : '.$infos['extension'].
+                                '<span class="newline">&nbsp;</span>';
+                                $output_line = str_replace('$FOUND$', $FOUND, $OutputTemplate);
+                                if (FULLDEBUG && !aeSecureFct::isAjaxRequest()) {
+                                    echo sprintf(
+                                        '%s CONTAINS A VIRUS<br/>',
+                                        $filename
+                                    );
+                                }
+                                if (true === $this->aeSession->get('Debug', DEBUG)) {
+                                    $this->aeLog->addLog('Scanning #' . ($wFile + 1) . '. ' .
+                                        $filename . '. This file is in the edited list i.e. ' .
+                                        'contains a known virus');
+                                }
+                            }
+                        }
+                        // look for php files in images folder
+                        if (($CMS == 'Joomla') && (
+                            ((strpos($infos['dirname'], DIR.'/images') !== false) || (strpos($infos['dirname'], DIR.'\images') !== false))
+                            && isset($infos['extension'])
+                            && $forbiddenext
+                        )) {
+                            preg_match('/'.$forbiddenext.'/', $infos['extension'], $output_array);
+                            if ((count($output_array)) || ($infos['extension'] == 'php')) {
+                                $bInfected = true;
+                                $bFound    = true;
+                                $FOUND =
+                                '<span class="label label-danger blink">' . $aeLanguage->get('DANGER') . '</span>&nbsp;' . $aeLanguage->get('WRONGIMAGE').$filename.
+                                '<span class="newline">&nbsp;</span>';
+                                $output_line = str_replace('$FOUND$', $FOUND, $OutputTemplate);
+                                if (FULLDEBUG && !aeSecureFct::isAjaxRequest()) {
+                                    echo sprintf(
+                                        '%s CONTAINS A VIRUS<br/>',
+                                        $filename
+                                    );
+                                }
+                                if (true === $this->aeSession->get('Debug', DEBUG)) {
+                                    $this->aeLog->addLog('Scanning #' . ($wFile + 1) . '. ' .
+                                        $filename . '. This file is in the edited list i.e. ' .
+                                        'contains a known virus');
+                                }
+                            }
+                        }
                         // Check if the file is a black listed one
                         if (isset($this->_arrBlackListHashes[$md5])) {
                             // The file being scanned is blacklisted
@@ -3793,7 +4243,7 @@ if (1 === $aeSession::get('IgnoreText', 1)) {
                         // Houston, we've a serious problem; no signatures to scan =>
                         // there was an error in the json PATTERN
                     if (0 == $aeScan->getCountPatterns()) {
-                        die();
+                        die('getCountPatterns : '.__LINE__);
                     }
 
 ?>
@@ -3849,22 +4299,30 @@ if (1 === $aeSession::get('IgnoreText', 1)) {
                                 'data-old-caption="1. ' . $aeLanguage->get('BTNCLEAN') . '">1. ' .
                                 $aeLanguage->get('BTNCLEAN') . '</button>&nbsp;';
 
+                            echo '<button type="button" id="getextensions" disabled="disabled" ' .
+                                'class="btn btn-primary" data-toggle="popover" ' .
+                                'data-placement="bottom" data-html="true" ' .
+                                'data-content="<span class=\'text-info\'>' .
+                                $aeLanguage->get('BTNGETEXTENSIONSHINT') . '</span>" ' .
+                                'data-old-caption="2. ' . $aeLanguage->get('BTNGETEXTENSIONS') .
+                                '">2. ' . $aeLanguage->get('BTNGETEXTENSIONS') . '</button>&nbsp;';
+
                             echo '<button type="button" id="getcountfiles" disabled="disabled" ' .
                                 'class="btn btn-primary" data-toggle="popover" ' .
                                 'data-placement="bottom" data-html="true" ' .
                                 'data-content="<span class=\'text-info\'>' .
                                 $aeLanguage->get('BTNGETLISTHINT') . '</span>" ' .
-                                'data-old-caption="2. ' . $aeLanguage->get('BTNGETLIST') .
-                                '">2. ' . $aeLanguage->get('BTNGETLIST') . '</button>&nbsp;';
+                                'data-old-caption="3. ' . $aeLanguage->get('BTNGETLIST') .
+                                '">3. ' . $aeLanguage->get('BTNGETLIST') . '</button>&nbsp;';
                             echo '<button type="button" id="startscan" data-start="0" ' .
                                 'data-end="0" disabled="disabled" class="btn btn-primary" ' .
                                 'data-toggle="popover" data-placement="bottom" data-html="true" ' .
                                 'data-content="<span class=\'text-info\'>' .
-                                $aeLanguage->get('BTNSCANHINT') . '</p>" data-old-caption="3. ' .
-                                $aeLanguage->get('BTNSCAN') . '">3. ' .
+                                $aeLanguage->get('BTNSCANHINT') . '</p>" data-old-caption="4. ' .
+                                $aeLanguage->get('BTNSCAN') . '">4. ' .
                                 $aeLanguage->get('BTNSCAN') . '</button>&nbsp;';
 
-                            $killnr = 4;
+                            $killnr = 5;
 
                             echo '<button type="button" id="destroy" class="btn btn-warning" ' .
                                 'data-toggle="popover" data-placement="bottom" data-html="true" ' .
@@ -4017,14 +4475,41 @@ echo aeSecureFct::addJavascript(
                         <?php $aeProgress->getJSFunction('ajax_success'); ?>
                         $('#cleansite').html("1. <?php echo $aeLanguage->get('BTNCLEANDONE');?>");
                         $('#result').html(data);
-                        $('#getcountfiles').prop("disabled", false);
+                        $('#getextensions').prop("disabled", false);
                         // To remember that we've already click on this button
                         $(btn).addClass('btn-success');
 
                     }
                 });
             });
-
+            //Get extensions
+            $('#getextensions').click(function (e) {
+                e.stopImmediatePropagation();
+                var btn=this;
+                $.ajax({
+                    beforeSend: function() {
+                        if(!$debug) $('#getextensions').prop("disabled", true);
+                        $('.popover').popover('hide');
+                        $('#result').empty();
+                        $('#getextensions').html("2. <?php echo $aeLanguage->get('RUNNING');?>");
+                        $('#result').html('<div class="blink" id="gettingFiles"><?php echo str_replace("'", "\'", (string) $aeLanguage->get('GETTINGEXTENSIONS'));?></div>');
+                        $('#resultGetCountFilesNumber').empty();
+                        <?php $aeProgress->getJSFunction('ajax_before'); ?>
+                    },
+                    async:true,
+                    type:($debug?'GET':'POST'),
+                    url: "<?php echo FILE; ?>",
+                    data:"task=getextensions&folder="+(btoa($('#folder').val())),
+                    success: function (data) {
+                        <?php $aeProgress->getJSFunction('ajax_success'); ?>
+                        $('#getextensions').html("2. <?php echo $aeLanguage->get('BTNGETEXTENSIONSDONE');?>");
+                        $('#result').html(data);
+                        $('#getcountfiles').prop("disabled", false);
+                        // To remember that we've already click on this button
+                        $(btn).addClass('btn-success');
+                    }
+                });
+            });
             // Get the number of files that will be analyzed during the scan
             $('#getcountfiles').click(function (e) {
                 e.stopImmediatePropagation();
@@ -4044,7 +4529,7 @@ echo aeSecureFct::addJavascript(
                     beforeSend: function() {
                         if(!$debug) $('#getcountfiles').prop("disabled", true);
                         $('.popover').popover('hide');
-                        $('#getcountfiles').html("2. <?php echo $aeLanguage->get('RUNNING');?>");
+                        $('#getcountfiles').html("3. <?php echo $aeLanguage->get('RUNNING');?>");
                         $('#result').empty();
                         $('#resultGetCountFilesNumber').empty();
                         $('#result').html('<div class="blink" id="gettingFiles"><?php echo str_replace("'", "\'", (string) $aeLanguage->get('GETTINGFILES'));?></div>');
@@ -4066,7 +4551,7 @@ echo aeSecureFct::addJavascript(
 
                         var $tmp="<?php echo $aeLanguage->get('FILES');?>".replace("%s",numberWithCommas(json.count));
 
-                        $('#startscan').html("3. <?php echo $aeLanguage->get('SCANFILES');?>".replace("%s",numberWithCommas(json.count)));
+                        $('#startscan').html("4. <?php echo $aeLanguage->get('SCANFILES');?>".replace("%s",numberWithCommas(json.count)));
 
                         if (json.blacklisting != "") {
                             $blacklisting='';
@@ -4123,7 +4608,7 @@ echo aeSecureFct::addJavascript(
                         initButtons();
 
                         $('#result').empty();
-                        $('#getcountfiles').html("2. "+$tmp);
+                        $('#getcountfiles').html("3. "+$tmp);
                         $('#resultGetCountFilesNumber').html($msg);
                         $('#resultGetCountFiles').show();
                         $('button[id^=startscan]').prop("disabled", false);

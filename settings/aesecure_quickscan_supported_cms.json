@@ -1,7 +1,8 @@
 {
     "joomla": {
         "prefix": "J!",
-        "archives": "https:\/\/mirror.myjoomla.io\/"
+        "archives": "https:\/\/mirror.myjoomla.io\/",
+        "forbiddenext" : "phtm?l?|shtm?l?|phpt|ash?x|aspx?|cfml?|pl|jsp"
     },
     "wordpress": {
         "prefix": "WP",
