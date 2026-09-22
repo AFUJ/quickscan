@@ -63,7 +63,11 @@ aeSecure QuickScan téléchargera automatiquement trois ou quatre fichiers :
 
 Si votre site web utilise un CMS supporté comme par exemple `Joomla` et une version supportée, un fichier nommé `aesecure_quickscan_XXXXXX.json` sera téléchargé (où `XXXXXX` est par exemple `J!3.9.0`).
 
-Depuis la **version 2.1.0**, un répertoire hashes/\<CMS\>extensions a été ajouté. Dans le cas de Joomla!, le répertoire est J!extensions, pour Wordpress, il s'agit de WPextensions. Ces répertoires contiennent les fichiers de hashage des principales extensions Joomla!/Wordpress. Cela permet de **réduire le nombre de "faux positifs"**. Vous pouvez y ajouter vos propres extensions : voir la section **Créer les hashages**. 
+Depuis la **version 2.1.0**, un répertoire hashes/\<CMS\>extensions a été ajouté. Dans le cas de Joomla!, le répertoire est J!extensions, pour Wordpress, il s'agit de WPextensions. Ces répertoires contiennent les fichiers de hashage des principales extensions Joomla!/Wordpress. Cela permet de **réduire le nombre de "faux positifs"**. Vous pouvez y ajouter vos propres extensions : voir la section **Créer les hashages**.
+
+Depuis la **version 2.3.0**, la liste de vos extensions est récupérée de la base de données et les fichiers d'installation sont récupérées directement chez les développeurs. Ils sont ensuite transformés en fichier de hashage.
+
+Dans cette version 2.3.0, les extensions des fichiers sont analysées afin d'interdire certains types de fichier tels que shtml, py, ... De plus, ces types de fichiers ainsi que les fichiers de type php sont signalés lorsqu'ils sont dans le répertoire **images** de Joomla.
 
 Si quelque chose ne va pas avec le téléchargement automatique (pas de support `CURL` par exemple), vous serez invité à télécharger ces fichiers manuellement.
 
@@ -96,7 +100,13 @@ Quelques points :
 Pour améliorer la vitesse de l'analyse, les dossiers `/cache` et `/temp` seront d'abord vidés.
 Vous devez cliquer sur ce bouton en premier.
 
-2. Obtenir la liste des fichiers
+2. Obtenir la liste de vos extensions (Joomla)
+
+Pour réduire le nombre de 'faux positifs', les packages d'installation de vos extensions (déterminé à partir de votre base de données) sont chargés depuis le site de leurs développeurs. Ils sont ensuite transformés en fichier de hashage. Ces fichiers seront utilisés dans les étapes suivantes.
+
+remarque : Si le système ne parvient pas à trouver des extensions, dans le cas d'extensions payantes par exemple, vous pouvez copier les fichiers d'installation de ces extensions directement dans le répertoire hashes/J!extensions. En relançant le processus d'obtention des extensions, ils seront pris en charge automatiquement.
+
+3. Obtenir la liste des fichiers
 
 Avant de commencer l'analyse, QuickScan doit savoir combien de fichiers il doit analyser. L'action `Obtention de la liste des fichiers` récupérera la liste de tous les fichiers de votre site et tous les fichiers de la liste blanche seront ignorés. Un fichier de la liste blanche est un fichier que QuickScan sait être propre. Comment ? Parce que le hachage md5 du fichier est mentionné dans un fichier de liste blanche comme le `aesecure_quickscan_J!5.2.5.json` (ou tout autre fichier de liste blanche).
 
@@ -108,7 +118,7 @@ Comme vous pouvez le voir ci-dessous, dans une installation fraîche de Joomla 3
 
 ![Rien à analyser](images/nothing_to_scan.png)
 
-3. Analyser le site
+4. Analyser le site
 
 Les fichiers restants seront analysés et si quelque chose est trouvé sur la base de
 
@@ -123,7 +133,7 @@ Ensuite, le fichier sera affiché, et vous pourrez le mettre dans la liste blanc
 
 Remarque : vous pouvez supprimer le fichier uniquement lorsque vous exécutez en mode expert de QuickScan.
 
-4. Supprimer ce script du serveur
+5. Supprimer ce script du serveur
 
 Une fois que vous avez analysé votre site ; n'oubliez pas de supprimer le script `aesecure_quickscan.php` et tous les fichiers JSON associés. Le bouton `Supprimer ce script` le fera pour vous.
 
