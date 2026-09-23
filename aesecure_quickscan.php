@@ -3,7 +3,7 @@
 /**
  * Name          : aeSecure QuickScan - Free scanner
  * Description   : Scan your website for possible hacks, viruses, malwares, SEO black hat and exploits
- * Version       : 2.3.3
+ * Version       : 2.3.4
  * Date          : November 2018
  * Last update   : September 2026
  * Author        : AVONTURE Christophe (christophe@avonture.be)
@@ -26,6 +26,12 @@
  * services.
  *
  * Changelog:
+ *
+ * =======
+ * version 2.3.4 (by ConseilGouz)
+ *  + error not defined $error
+ *  + extensions list = ignore locked extensions
+ *  + display xml read errors and ignore extension
  *
  * =======
  * version 2.3.3 (by ConseilGouz)
@@ -177,7 +183,7 @@ define('DEMO', false);
 
 define('DEBUG', false);              // Enable debugging (Note: there is no progress bar in debug mode)
 define('FULLDEBUG', false);          // Output a lot of information
-define('VERSION', '2.3.1');          // Version number of this script
+define('VERSION', '2.3.4');          // Version number of this script
 define('EXPERT', false);             // Display Kill file button and allow to specify a folder
 define('MAX_SIZE', 1 * 1024 * 1024); // One megabyte: skip files when filesize is greater than this max size.
 define('MAXFILESBYCYCLE', 500);      // Number of files to process by cycle, reduce this figure if you receive HTTP error 504 - Gateway timeout
@@ -2518,20 +2524,20 @@ class aeSecureScan
         $query = $db->createQuery()
             ->select('*')
             ->from($db->quoteName('#__extensions'))
-            ->where($db->quoteName('extension_id').' > 10000')
+            ->where($db->quoteName('locked').' = 0')
             ->where($db->quoteName('enabled').' = 1')
             ->where($db->quoteName('package_id').'= 0');
 
         $db->setQuery($query);
         $extensions = $db->loadObjectList();
         $sites =  [];
-        $abbr = ['component' => 'com', 'module' => 'mod', 'plugin' => 'plg', 'library' => 'lib', 'package' => 'pkg'];
+        $abbr = ['component' => 'com', 'module' => 'mod', 'plugin' => 'plg', 'library' => 'lib', 'package' => 'pkg', 'template' => 'tmpl'];
         foreach ($extensions as $extension) {
             $manifest = json_decode($extension->manifest_cache);
+            $version = $manifest->version;
             if (in_array($extension->name.'-'.$version.'.json', $hash_ext)) {
                 continue;
             }
-            $version = $manifest->version;
             $name = $extension->name;
             $type = $extension->type;
             $site = $this->get_extensions_update_file($extension->extension_id);
@@ -2560,7 +2566,7 @@ class aeSecureScan
             $one = explode('?', $key);
             $errors += $this->get_extension_update($one[0], $one[1], $site, $CMS, $CMSVersion);
         }
-        $error += $this->create_extensions_json($CMS, $CMSVersion);
+        $errors += $this->create_extensions_json($CMS, $CMSVersion);
         // reload extensions hashes
         [$this->_arrExtHashes] = $this->getExtHashes($CMS);
 
@@ -2596,7 +2602,15 @@ class aeSecureScan
      */
     private function get_extension_update($name, $version, $file, $CMS, $CMSVersion): int
     {
-        $xmls = simplexml_load_file($file);
+        error_reporting(E_ERROR | E_PARSE);
+        $xmls = simplexml_load_file($file, 'SimpleXMLElement', LIBXML_NOWARNING);
+        if (!$xmls) {
+            echo '<p class="text-danger">Mise à jour : erreur sur le fichier xml de '.$name.', version '.$version.'</p>';
+            libxml_clear_errors();
+            return 1;
+        }
+        //Important to clear the error buffer
+        libxml_clear_errors();
         $url = "";
         $latest = "";
         foreach ($xmls->update as $xml) {
@@ -4504,14 +4518,12 @@ echo aeSecureFct::addJavascript(
                         $('#getextensions').html("2. <?php echo $aeLanguage->get('RUNNING');?>");
                         $('#result').html('<div class="blink" id="gettingFiles"><?php echo str_replace("'", "\'", (string) $aeLanguage->get('GETTINGEXTENSIONS'));?></div>');
                         $('#resultGetCountFilesNumber').empty();
-                        <?php $aeProgress->getJSFunction('ajax_before'); ?>
                     },
                     async:true,
                     type:($debug?'GET':'POST'),
                     url: "<?php echo FILE; ?>",
                     data:"task=getextensions&folder="+(btoa($('#folder').val())),
                     success: function (data) {
-                        <?php $aeProgress->getJSFunction('ajax_success'); ?>
                         $('#getextensions').html("2. <?php echo $aeLanguage->get('BTNGETEXTENSIONSDONE');?>");
                         $('#result').html(data);
                         $('#getcountfiles').prop("disabled", false);
