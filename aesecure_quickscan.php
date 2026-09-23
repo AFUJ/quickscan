@@ -3,7 +3,7 @@
 /**
  * Name          : aeSecure QuickScan - Free scanner
  * Description   : Scan your website for possible hacks, viruses, malwares, SEO black hat and exploits
- * Version       : 2.3.2
+ * Version       : 2.3.3
  * Date          : November 2018
  * Last update   : September 2026
  * Author        : AVONTURE Christophe (christophe@avonture.be)
@@ -28,6 +28,10 @@
  * Changelog:
  *
  * =======
+ * version 2.3.3 (by ConseilGouz)
+ *  + display missing extension updates
+ *
+ * =======
  * version 2.3.2 (by ConseilGouz)
  *  + optimize extensions search
  *
@@ -35,7 +39,6 @@
  * version 2.3.1 (by ConseilGouz)
  *  + add a note to invalid extension/invalid content in images folder message
  *  + block redo extension search on get files button click
- *  + cookie string => risk becomes a warning
  *
  * =======
  * version 2.3.0 (by ConseilGouz)
@@ -174,7 +177,7 @@ define('DEMO', false);
 
 define('DEBUG', false);              // Enable debugging (Note: there is no progress bar in debug mode)
 define('FULLDEBUG', false);          // Output a lot of information
-define('VERSION', '2.3.2');          // Version number of this script
+define('VERSION', '2.3.1');          // Version number of this script
 define('EXPERT', false);             // Display Kill file button and allow to specify a folder
 define('MAX_SIZE', 1 * 1024 * 1024); // One megabyte: skip files when filesize is greater than this max size.
 define('MAXFILESBYCYCLE', 500);      // Number of files to process by cycle, reduce this figure if you receive HTTP error 504 - Gateway timeout
@@ -2551,14 +2554,25 @@ class aeSecureScan
                 $sites[$type.'_'.$folder.$filename.'?'.$version] = $site;
             }
         }
+        $errors = 0;
         foreach ($sites as $key => $site) {
             // site = site ? version
             $one = explode('?', $key);
-            $this->get_extension_update($one[0], $one[1], $site, $CMS, $CMSVersion);
+            $errors += $this->get_extension_update($one[0], $one[1], $site, $CMS, $CMSVersion);
         }
-        $this->create_extensions_json($CMS, $CMSVersion);
+        $error += $this->create_extensions_json($CMS, $CMSVersion);
         // reload extensions hashes
         [$this->_arrExtHashes] = $this->getExtHashes($CMS);
+
+        if ($errors) {
+            $aeLanguage = aeSecureLanguage::getInstance();
+            echo $aeLanguage->get('RESTARTEXTENSIONS') ;
+            echo "<script>";
+            echo "$('#getextensions').html('2.".$aeLanguage->get('BTNRESTARTEXTENSIONS')."');";
+            echo "$('#getextensions').prop('disabled', false);";
+            echo "</script>";
+        }
+
     }
     /**
      * get one extension update information from #__update_sites table
@@ -2580,28 +2594,30 @@ class aeSecureScan
     /**
      * get one extension installation file from its developer
      */
-    private function get_extension_update($name, $version, $file, $CMS, $CMSVersion)
+    private function get_extension_update($name, $version, $file, $CMS, $CMSVersion): int
     {
         $xmls = simplexml_load_file($file);
         $url = "";
         $latest = "";
         foreach ($xmls->update as $xml) {
             if ($xml->version == $version) {
-                //                return true; // version OK
-            }
-            if ($xml->targetplatform) {
-                if ($xml->version > $latest) {
-                    $latest = $xml->version;
+                $latest = $version;
+                if ($xml->targetplatform) {
                     $target = (array)$xml->targetplatform->attributes()->version;
                     $target = $target[0];
                     if (preg_match('/^' . $target . '/', $CMSVersion)) {
                         $url = $xml->downloads->downloadurl;
                     }
+                } else { // pas de target platform : on assume ok
+                    $url = $xml->downloads->downloadurl;
                 }
+            } else {
+
             }
         }
         if (!$url) { // no update
-            return true;
+            echo '<p class="text-danger">Mise à jour non trouvé pour '.$name.', version '.$version.'</p>';
+            return 1;
         }
 
         $aeDownload = new Download('Quickscan');
@@ -2613,18 +2629,21 @@ class aeSecureScan
         if ($CMS == 'Joomla') {
             $dir = 'J!extensions';
         }
-        $filename = 'hashes/' . $dir . '/'.$name.'-'.$latest.'.zip';
-        $jsonfile = 'hashes/' . $dir . '/'.$name.'-'.$latest.'.json';
-        if (is_file($filename) || is_file($jsonfile)) {
-            return true;
+        $filename = 'hashes/' . $dir . '/'.$name.'-'.$version.'.zip';
+        $jsonfile = 'hashes/' . $dir . '/'.$name.'-'.$version.'.json';
+        $dirfile  = 'hashes/' . $dir . '/'.$name.'-'.$version;
+        if (is_file($filename) || is_file($jsonfile) || is_dir($dirfile)) {
+            // mise à jour déjà là
+            return 0;
         }
         $aeDownload->setFileName($filename);
         $aeDownload->download();
+        return 0;
     }
     /**
      * create json files from all new downloaded files
      */
-    private function create_extensions_json($CMS, $CMSVersion)
+    private function create_extensions_json($CMS, $CMSVersion): int
     {
         $out = "";
         $Folder = "Joomla";
@@ -2635,14 +2654,6 @@ class aeSecureScan
         }
         $hashFolder = DIR.'/hashes/' . $Folder;
         $errors = $this->recurceZip($hashFolder); // unzip all zip files
-        if ($errors) {
-            $aeLanguage = aeSecureLanguage::getInstance();
-            echo $aeLanguage->get('RESTARTEXTENSIONS') ;
-            echo "<script>";
-            echo "$('#getextensions').html('2.".$aeLanguage->get('BTNRESTARTEXTENSIONS')."');";
-            echo "$('#getextensions').prop('disabled', false);";
-            echo "</script>";
-        }
         if (!in_array($Folder, ['blacklist', 'other'])) {
             // This is a folder like "Joomla" : one json file by subfolder since a subfolder contain a specific version of that CMS
             $subfolders = array_filter(glob($hashFolder . DS . '*'), 'is_dir');
@@ -2651,7 +2662,6 @@ class aeSecureScan
             $subfolders = [$Folder];
         }
         if (count($subfolders) > 0) {
-            $tmp = '';
             foreach ($subfolders as $folder) {
                 // The file with the hashes will be something like hashes/joomla/J!2.5.27.json
                 if (!in_array($Folder, ['blacklist', 'other'])) {
@@ -2663,20 +2673,13 @@ class aeSecureScan
 
                 if ((!file_exists($filename)) || (in_array($Folder, ['blacklist', 'other']))) {
                     $this->makeJSON($folder, $filename);
-                    $out .= '<p class="text-success">'.$filename.' has been created.</p>';
-                } else {
-                    $out .= '<p class="text-danger">'.$filename.' has been ignored.</p>';
                 }
                 if (is_dir($folder)) { // unzipped folder ?
                     $this->aeFiles->rrmdir($folder, true, []);
                 }
             }
-
-            if ('' != $tmp) {
-                $out .= '<h3>Scan ' . $hashFolder . '</h3>';
-                $out .= '<ol>' . $tmp . '</ol>';
-            }
         }
+        return $errors;
     }
     /**
      * Unzip one extension
