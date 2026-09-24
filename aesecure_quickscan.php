@@ -3,7 +3,7 @@
 /**
  * Name          : aeSecure QuickScan - Free scanner
  * Description   : Scan your website for possible hacks, viruses, malwares, SEO black hat and exploits
- * Version       : 2.3.4
+ * Version       : 2.3.5
  * Date          : November 2018
  * Last update   : September 2026
  * Author        : AVONTURE Christophe (christophe@avonture.be)
@@ -27,6 +27,10 @@
  *
  * Changelog:
  *
+ * =======
+ * version 2.3.5 (by ConseilGouz)
+ *  + add progress bar in extensions list and files list search
+ * 
  * =======
  * version 2.3.4 (by ConseilGouz)
  *  + error not defined $error
@@ -183,7 +187,7 @@ define('DEMO', false);
 
 define('DEBUG', false);              // Enable debugging (Note: there is no progress bar in debug mode)
 define('FULLDEBUG', false);          // Output a lot of information
-define('VERSION', '2.3.4');          // Version number of this script
+define('VERSION', '2.3.5');          // Version number of this script
 define('EXPERT', false);             // Display Kill file button and allow to specify a folder
 define('MAX_SIZE', 1 * 1024 * 1024); // One megabyte: skip files when filesize is greater than this max size.
 define('MAXFILESBYCYCLE', 500);      // Number of files to process by cycle, reduce this figure if you receive HTTP error 504 - Gateway timeout
@@ -1657,8 +1661,8 @@ class aeSecureProgressBar
 
         ++$this->_start;
 
-        if (($this->_start / $this->getEnd()) > $this->_pct) {
-            $this->_pct = intval(intval($this->_start) / $this->getEnd());
+        if (($this->_start / $this->getEnd()) * 100 > $this->_pct) {
+            $this->_pct = intval(($this->_start / $this->getEnd()) * 100);
 
             // *******************************************************************
             // *******************************************************************
@@ -1672,7 +1676,7 @@ class aeSecureProgressBar
             // *******************************************************************
 
             if ($handle = fopen($this->_filename, 'w+')) {
-                fwrite($handle, (int)($this->_pct * 100));
+                fwrite($handle, (int)($this->_pct));
                 fclose($handle);
             }
         }
@@ -2531,8 +2535,17 @@ class aeSecureScan
         $db->setQuery($query);
         $extensions = $db->loadObjectList();
         $sites =  [];
+
+        $this->_start = 0;
+        $this->_end = count($extensions) * 3;
+
+        $this->aeProgress->setStart(0);
+        $this->aeProgress->setEnd($this->_end - $this->_start);
+
+
         $abbr = ['component' => 'com', 'module' => 'mod', 'plugin' => 'plg', 'library' => 'lib', 'package' => 'pkg', 'template' => 'tmpl'];
         foreach ($extensions as $extension) {
+            $this->aeProgress->incTaskCount();
             $manifest = json_decode($extension->manifest_cache);
             $version = $manifest->version;
             if (in_array($extension->name.'-'.$version.'.json', $hash_ext)) {
@@ -2561,14 +2574,18 @@ class aeSecureScan
             }
         }
         $errors = 0;
+
         foreach ($sites as $key => $site) {
             // site = site ? version
+            $this->aeProgress->incTaskCount();
             $one = explode('?', $key);
             $errors += $this->get_extension_update($one[0], $one[1], $site, $CMS, $CMSVersion);
         }
         $errors += $this->create_extensions_json($CMS, $CMSVersion);
         // reload extensions hashes
         [$this->_arrExtHashes] = $this->getExtHashes($CMS);
+
+        $this->aeProgress->clean();
 
         if ($errors) {
             $aeLanguage = aeSecureLanguage::getInstance();
@@ -2677,6 +2694,7 @@ class aeSecureScan
         }
         if (count($subfolders) > 0) {
             foreach ($subfolders as $folder) {
+                $this->aeProgress->incTaskCount();
                 // The file with the hashes will be something like hashes/joomla/J!2.5.27.json
                 if (!in_array($Folder, ['blacklist', 'other'])) {
                     $filename = $hashFolder . DS . $prefix . str_replace($hashFolder . DS, '', $folder) . '.json';
@@ -3107,7 +3125,13 @@ class aeSecureScan
             // And don't scan this script also
             $arrSkipFiles[] = DIR . DS . FILE;
 
+            $this->_start = 0;
+            $this->_end = iterator_count($files);
+            $this->aeProgress->setStart(0);
+            $this->aeProgress->setEnd($this->_end - $this->_start);
+
             foreach ($files as $filename => $object) {
+                $this->aeProgress->incTaskCount();
                 // Don't process these files
                 if (in_array($filename, $arrSkipFiles)) {
                     continue;
@@ -4518,12 +4542,14 @@ echo aeSecureFct::addJavascript(
                         $('#getextensions').html("2. <?php echo $aeLanguage->get('RUNNING');?>");
                         $('#result').html('<div class="blink" id="gettingFiles"><?php echo str_replace("'", "\'", (string) $aeLanguage->get('GETTINGEXTENSIONS'));?></div>');
                         $('#resultGetCountFilesNumber').empty();
+                        <?php $aeProgress->getJSFunction('ajax_before'); ?>
                     },
                     async:true,
                     type:($debug?'GET':'POST'),
                     url: "<?php echo FILE; ?>",
                     data:"task=getextensions&folder="+(btoa($('#folder').val())),
                     success: function (data) {
+                        <?php $aeProgress->getJSFunction('ajax_before'); ?>
                         $('#getextensions').html("2. <?php echo $aeLanguage->get('BTNGETEXTENSIONSDONE');?>");
                         $('#result').html(data);
                         $('#getcountfiles').prop("disabled", false);
