@@ -3,7 +3,7 @@
 /**
  * Name          : aeSecure QuickScan - Free scanner
  * Description   : Scan your website for possible hacks, viruses, malwares, SEO black hat and exploits
- * Version       : 2.3.5
+ * Version       : 2.3.6
  * Date          : November 2018
  * Last update   : September 2026
  * Author        : AVONTURE Christophe (christophe@avonture.be)
@@ -27,6 +27,11 @@
  *
  * Changelog:
  *
+ * =======
+ * version 2.3.6 (by ConseilGouz)
+ *  + parser Error
+ *  + Joomla 6.1.4 / 5.4.9
+ * 
  * =======
  * version 2.3.5 (by ConseilGouz)
  *  + add progress bar in extensions list and files list search
@@ -187,7 +192,7 @@ define('DEMO', false);
 
 define('DEBUG', false);              // Enable debugging (Note: there is no progress bar in debug mode)
 define('FULLDEBUG', false);          // Output a lot of information
-define('VERSION', '2.3.5');          // Version number of this script
+define('VERSION', '2.3.6');          // Version number of this script
 define('EXPERT', false);             // Display Kill file button and allow to specify a folder
 define('MAX_SIZE', 1 * 1024 * 1024); // One megabyte: skip files when filesize is greater than this max size.
 define('MAXFILESBYCYCLE', 500);      // Number of files to process by cycle, reduce this figure if you receive HTTP error 504 - Gateway timeout
@@ -3246,8 +3251,7 @@ class aeSecureScan
                 flush();
             } catch (\Exception $e) {
             }
-            return true;
-            die('getCountFiles : '.__LINE__);
+            die();
         } else {
             return true;
         }
